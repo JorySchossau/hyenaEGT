@@ -725,7 +725,8 @@ void threadedEvaluateFitness(int chunkBegin, int chunkEnd, const vector<vector<t
 		}
       frequencies.c+=N[C]; frequencies.d+=N[D]; frequencies.m+=N[M]; frequencies.i+=N[I];
 		//if ( randDouble() <  expx[ N[C]+N[M]+1 - g::rMultiplier + neighbors+1 ] ) pool = g::rMultiplier;
-		if ( randDouble() < 1.0 / ( 1.0 + exp(-( N[C]+N[M]+1 - g::rMultiplier )) ) ) pool = g::rMultiplier;
+		//if ( randDouble() < 1.0 / ( 1.0 + exp(-( N[C]+N[M]+1 - g::rMultiplier )) ) ) pool = g::rMultiplier;
+		if ( randDouble() < 1.0 / ( 1.0 + exp(-( N[C]+N[M]+1 - g::rMultiplier )) ) ) pool = neighbors+1;
 		else pool = 0.0;
 		for(z=0;z<neighbors+1;z++) {
 			ScoreDelta score;
