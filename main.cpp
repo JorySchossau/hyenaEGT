@@ -27,11 +27,10 @@
    #include <sys/stat.h> // filesystem access
 #endif
 
-using namespace std;
 using namespace Params;
 
 double perSiteMutationRate=0.005;
-//int update=0;
+//int g::update=0;
 size_t repeats=1;
 int maxAgent=1024;
 int totalGenerations=200;
@@ -84,8 +83,8 @@ double randDouble() { return ((double)rand() / (double)RAND_MAX); }
 #ifdef NEVER
 /*
 int oldmain(int argc, char *argv[]) {
-	string experimentID;
-	int replicateID=0;
+	string g::experimentID;
+	int g::replicateID=0;
 	vector<tAgent*>agent;
 	vector<tAgent*>nextGen;
 	int who=0;
@@ -121,10 +120,10 @@ int oldmain(int argc, char *argv[]) {
 
 	addp(TYPE::BOOL, &showhelp);
 	addp(TYPE::STRING, &filenameLOD, "--lod", "filename to save Line of Descent.");
-	addp(TYPE::STRING, &experimentID, "--experiment", "unique identifier for this experiment, shared by all replicates.");
-	addp(TYPE::INT, &replicateID, "--replicate", "unique number to identify this replicate in this experiment.");
+	addp(TYPE::STRING, &g::experimentID, "--experiment", "unique identifier for this experiment, shared by all replicates.");
+	addp(TYPE::INT, &g::replicateID, "--replicate", "unique number to identify this replicate in this experiment.");
 	addp(TYPE::STRING, &filenameGenome, "--genome", "filename to save genomes of the LODFile.");
-	addp(TYPE::INT, &totalGenerations, "200", false, "--generations", "number of generations to simulate (updates).");
+	addp(TYPE::INT, &totalGenerations, "200", false, "--generations", "number of generations to simulate (g::updates).");
 	addp(TYPE::STRING, &filenameStartWith, "none", false, "--startWith", "specify a genome file used to seed the population.");
 	addp(TYPE::BOOL, &stopOnLimit, "false", false, "--stopOnLimit", "if a limit is specified, then the simulation will stop at the limit.");
 	addp(TYPE::INT, &startGenes, "5000", false, "--startGenes", "number of genes with which first organisms begin.");
@@ -139,28 +138,28 @@ int oldmain(int argc, char *argv[]) {
 
 	argparse(argv);
 	if (showhelp) {
-		cout << argdetails() << endl;
-		cout << "Example minimal invocation:" << endl;
-		cout << argv[0] << " --experiment=linearFitness --replicate=1 --lod=lineOfDescent.lod --genome=genome.gen" << endl;
-		cout << "or" << endl;
-		cout << argv[0] << " --experiment linearFitness --replicate 1 --lod lineOfDescent.lod --genome genome.gen" << endl;
-		cout << endl;
+		std::cout << argdetails() << std::endl;
+		std::cout << "Example minimal invocation:" << std::endl;
+		std::cout << argv[0] << " --experiment=linearFitness --replicate=1 --lod=lineOfDescent.lod --genome=genome.gen" << std::endl;
+		std::cout << "or" << std::endl;
+		std::cout << argv[0] << " --experiment linearFitness --replicate 1 --lod lineOfDescent.lod --genome genome.gen" << std::endl;
+		std::cout << std::endl;
 		exit(0);
 	}
 
 	/// inputs for selectionRegime from --selectionOn
 	if (selectionOn.size() == 0) {
 		selectionOn.push_back("task");
-		//cout << "no regimes specified for selection after --selectionOn option." << endl;
-		//cout << endl;
+		//std::cout << "no regimes specified for selection after --selectionOn option." << std::endl;
+		//std::cout << std::endl;
 		//exit(1);
 	}
 	for (string& argument : selectionOn) {
 		if (isaSelectionValue(argument)) {
 			selectionRegime |= (int)SelectionValues[argument];
 		} else {
-			cout << "invalid --selectionOn option: '" << argument << "'" << endl;
-			cout << endl;
+			std::cout << "invalid --selectionOn option: '" << argument << "'" << std::endl;
+			std::cout << std::endl;
 			exit(1);
 		}
 	}
@@ -201,9 +200,9 @@ int oldmain(int argc, char *argv[]) {
    for (i=maxNodes-1; i>=0; --i)
       nodeMask[i]=false;
    if (phiKnockouts) {
-      cout << "performing phi knockout" << endl;
+      std::cout << "performing phi knockout" << std::endl;
       FILE* koresults = nullptr;
-      string koresults_name = experimentID+".ko";
+      string koresults_name = g::experimentID+".ko";
 
       // error checking
       if (filenameStartWith == "none") {
@@ -217,7 +216,7 @@ int oldmain(int argc, char *argv[]) {
       // write data
       if (fileExists(koresults_name) == false) {
          koresults = fopen(cstr(koresults_name), "a+t");
-         fprintf(koresults, "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n", "experimentID", "replicateID", "fitness", "phi", "r", "topology", "correct", "incorrect", "knockouts", "nodeids", "noise_level");
+         fprintf(koresults, "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n", "g::experimentID", "g::replicateID", "fitness", "phi", "r", "topology", "correct", "incorrect", "knockouts", "nodeids", "noise_level");
       } else {
          koresults = fopen(cstr(koresults_name), "a+t");
       }
@@ -242,8 +241,8 @@ int oldmain(int argc, char *argv[]) {
          agent[0]->fitness = tempFitness;
          fprintf(koresults, 
                "%s\t%i\t%f\t%f\t%f\t%f\t%i\t%i\t%i\t%s\t%f\n",
-               cstr(experimentID), 
-               replicateID,
+               cstr(g::experimentID), 
+               g::replicateID,
                agent[0]->fitness, 
                agent[0]->Phi, 
                agent[0]->R, 
@@ -268,8 +267,8 @@ int oldmain(int argc, char *argv[]) {
          agent[0]->fitness = tempFitness;
          fprintf(koresults, 
                "%s\t%i\t%f\t%f\t%f\t%f\t%i\t%i\t%i\t%s\t%f\n",
-               cstr(experimentID), 
-               replicateID,
+               cstr(g::experimentID), 
+               g::replicateID,
                agent[0]->fitness, 
                agent[0]->Phi, 
                agent[0]->R, 
@@ -295,8 +294,8 @@ int oldmain(int argc, char *argv[]) {
             agent[0]->fitness = tempFitness;
             fprintf(koresults, 
                   "%s\t%i\t%f\t%f\t%f\t%f\t%i\t%i\t%i\t%s\t%f\n", 
-                  cstr(experimentID), 
-                  replicateID, 
+                  cstr(g::experimentID), 
+                  g::replicateID, 
                   agent[0]->fitness, 
                   agent[0]->Phi, 
                   agent[0]->R, 
@@ -313,7 +312,7 @@ int oldmain(int argc, char *argv[]) {
    } 
    if (nstateknockouts != 0) {
       FILE* koresults = nullptr;
-      string koresults_name = experimentID+".ko";
+      string koresults_name = g::experimentID+".ko";
 
       // error checking
       if (filenameStartWith == "none") {
@@ -335,7 +334,7 @@ int oldmain(int argc, char *argv[]) {
       // write data
       if (fileExists(koresults_name) == false) {
          koresults = fopen(cstr(koresults_name), "a+t");
-         fprintf(koresults, "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n", "experimentID", "replicateID", "fitness", "phi", "r", "topology", "correct", "incorrect", "knockouts", "nodeids", "noise_nevel");
+         fprintf(koresults, "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n", "g::experimentID", "g::replicateID", "fitness", "phi", "r", "topology", "correct", "incorrect", "knockouts", "nodeids", "noise_nevel");
       } else {
          koresults = fopen(cstr(koresults_name), "a+t");
       }
@@ -355,7 +354,7 @@ int oldmain(int argc, char *argv[]) {
       tempFitness *= pow(fitnessPower,agent[0]->correct - agent[0]->incorrect);
       tempFitness += 1.0f;
       agent[0]->fitness = tempFitness;
-      fprintf(koresults, "%s\t%i\t%f\t%f\t%f\t%f\t%i\t%i\t%i\t%s\t%f\n", cstr(experimentID), replicateID, agent[0]->fitness, agent[0]->Phi, agent[0]->R, agent[0]->Topology, agent[0]->correct, agent[0]->incorrect, 0, "-1", -1.0f);
+      fprintf(koresults, "%s\t%i\t%f\t%f\t%f\t%f\t%i\t%i\t%i\t%s\t%f\n", cstr(g::experimentID), g::replicateID, agent[0]->fitness, agent[0]->Phi, agent[0]->R, agent[0]->Topology, agent[0]->correct, agent[0]->incorrect, 0, "-1", -1.0f);
 
       {
          // do knockout evaluations
@@ -378,7 +377,7 @@ int oldmain(int argc, char *argv[]) {
             tempFitness *= pow(fitnessPower,agent[0]->correct - agent[0]->incorrect);
             tempFitness += 1.0f;
             agent[0]->fitness = tempFitness;
-            fprintf(koresults, "%s\t%i\t%f\t%f\t%f\t%f\t%i\t%i\t%i\t%s\t%f\n", cstr(experimentID), replicateID, agent[0]->fitness, agent[0]->Phi, agent[0]->R, agent[0]->Topology, agent[0]->correct, agent[0]->incorrect, nstateknockouts, states_string.c_str(), 0.0f);
+            fprintf(koresults, "%s\t%i\t%f\t%f\t%f\t%f\t%i\t%i\t%i\t%s\t%f\n", cstr(g::experimentID), g::replicateID, agent[0]->fitness, agent[0]->Phi, agent[0]->R, agent[0]->Topology, agent[0]->correct, agent[0]->incorrect, nstateknockouts, states_string.c_str(), 0.0f);
 
             // go to next configuration
             movedAbit=false; // start with assumption: all bits are already in lowest order so no bits can be moved to lower order
@@ -410,7 +409,7 @@ int oldmain(int argc, char *argv[]) {
    }
    if (nknockouts != 0) {
       FILE* koresults = nullptr;
-      string koresults_name = experimentID+".ko";
+      string koresults_name = g::experimentID+".ko";
 
       // error checking
       if (filenameStartWith == "none") {
@@ -437,7 +436,7 @@ int oldmain(int argc, char *argv[]) {
       // write data
       if (fileExists(koresults_name) == false) {
          koresults = fopen(cstr(koresults_name), "a+t");
-         fprintf(koresults, "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n", "experimentID", "replicateID", "fitness", "phi", "r", "topology", "correct", "incorrect", "knockouts", "nodeids", "noiselevel");
+         fprintf(koresults, "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n", "g::experimentID", "g::replicateID", "fitness", "phi", "r", "topology", "correct", "incorrect", "knockouts", "nodeids", "noiselevel");
       } else {
          koresults = fopen(cstr(koresults_name), "a+t");
       }
@@ -457,7 +456,7 @@ int oldmain(int argc, char *argv[]) {
       tempFitness *= pow(fitnessPower,agent[0]->correct - agent[0]->incorrect);
       tempFitness += 1.0f;
       agent[0]->fitness = tempFitness;
-      fprintf(koresults, "%s\t%i\t%f\t%f\t%f\t%f\t%i\t%i\t%i\t%s\t%f\n", cstr(experimentID), replicateID, agent[0]->fitness, agent[0]->Phi, agent[0]->R, agent[0]->Topology, agent[0]->correct, agent[0]->incorrect, 0, "-1", -1.0f);
+      fprintf(koresults, "%s\t%i\t%f\t%f\t%f\t%f\t%i\t%i\t%i\t%s\t%f\n", cstr(g::experimentID), g::replicateID, agent[0]->fitness, agent[0]->Phi, agent[0]->R, agent[0]->Topology, agent[0]->correct, agent[0]->incorrect, 0, "-1", -1.0f);
 
       // do knockout evaluations
       do {
@@ -480,7 +479,7 @@ int oldmain(int argc, char *argv[]) {
          tempFitness *= pow(fitnessPower,agent[0]->correct - agent[0]->incorrect);
          tempFitness += 1.0f;
          agent[0]->fitness = tempFitness;
-         fprintf(koresults, "%s\t%i\t%f\t%f\t%f\t%f\t%i\t%i\t%i\t%s\t%f\n", cstr(experimentID), replicateID, agent[0]->fitness, agent[0]->Phi, agent[0]->R, agent[0]->Topology, agent[0]->correct, agent[0]->incorrect, nknockouts, states_string.c_str(), -1.0f);
+         fprintf(koresults, "%s\t%i\t%f\t%f\t%f\t%f\t%i\t%i\t%i\t%s\t%f\n", cstr(g::experimentID), g::replicateID, agent[0]->fitness, agent[0]->Phi, agent[0]->R, agent[0]->Topology, agent[0]->correct, agent[0]->incorrect, nknockouts, states_string.c_str(), -1.0f);
 
          // go to next configuration
          movedAbit=false; // start with assumption: all bits are already in lowest order so no bits can be moved to lower order
@@ -517,10 +516,10 @@ int oldmain(int argc, char *argv[]) {
    }
 	nextGen.resize(agent.size());
 	masterAgent->nrPointingAtMe--;
-	cout<<"setup complete"<<endl;
-	printf("%s	%s	%s	%s	%s	%s	%s\n", "update","(double)maxFitness","maxPhi","r", "maxTopology", "agent[who]->correct","agent[who]->incorrect");
+	std::cout<<"setup complete"<<std::endl;
+	printf("%s	%s	%s	%s	%s	%s	%s\n", "g::update","(double)maxFitness","maxPhi","r", "maxTopology", "agent[who]->correct","agent[who]->incorrect");
 
-	while(update<totalGenerations) {
+	while(g::update<totalGenerations) {
 		for(i=0;i<(int)agent.size();i++) {
 			agent[i]->fitness=0.0;
 			agent[i]->fitnesses.clear();
@@ -579,7 +578,7 @@ int oldmain(int argc, char *argv[]) {
 
 		/// regime switch conditions
 		if ((nregimes > 1) || (selectionRegime != (int)Selection::task)) {
-			if ((regimeGenLimit != -1) && (update > regimeGenLimit)) {
+			if ((regimeGenLimit != -1) && (g::update > regimeGenLimit)) {
 				selectionRegime = (int)Selection::task;
 				nregimes = 1;
 			}
@@ -592,7 +591,7 @@ int oldmain(int argc, char *argv[]) {
 			}
 		}
 			// convert maxValue to 0-100
-		printf("%i	%f	%f	%f	%f	%i	%i\n", update, maxFitness, agent[who]->Phi, agent[who]->R, agent[who]->Topology, agent[who]->correct, agent[who]->incorrect);
+		printf("%i	%f	%f	%f	%f	%i	%i\n", g::update, maxFitness, agent[who]->Phi, agent[who]->R, agent[who]->Topology, agent[who]->correct, agent[who]->incorrect);
 
 		int j=0;
 		for(i=0;i<agent.size();i++) {
@@ -605,7 +604,7 @@ int oldmain(int argc, char *argv[]) {
 					j=rand()%(int)agent.size();
 				} while((j==(i))||(randDouble>( agent[j]->fitness / maxFitness )));
 			}
-			d->inherit(agent[j],perSiteMutationRate,update);
+			d->inherit(agent[j],perSiteMutationRate,g::update);
 			nextGen[i]=d;
 		}
 	//}
@@ -617,7 +616,7 @@ int oldmain(int argc, char *argv[]) {
 			agent[i]=nextGen[i];
 		}
 		agent=nextGen;
-		update++;
+		g::update++;
 	}
 */
 #endif
@@ -633,31 +632,34 @@ int oldmain(int argc, char *argv[]) {
 #define yDim 32
 #define possibleMoves 4
 
-string experimentID;
-int replicateID;
-
-double mutationRate;
-double replacementRate=0.02;
-
-double beta;
-double kappa;
-double rMultiplier;
-double threshold;
-int radius=32;
-int updates=42;
-
 // neighbors is assumed power of 2
-#define neighbors 4
-int xm[neighbors+1]={0,1,0,-1,0};
-int ym[neighbors+1]={-1,0,1,0,0};
+#define neighbors 19
+//int xm[neighbors+1]={0,1,0,-1,0};
+//int ym[neighbors+1]={-1,0,1,0,0};
+int xm[neighbors+1]={0,1,0,-1, 1,1,-1,-1, 0,2,0,-2, 2,2,-2,-2, 0};
+int ym[neighbors+1]={-1,0,1,0, 1,-1,-1,1, -2,0,2,0, 2,-2,-2,2, 0};
+//float expx[512];
 //double pcd[2]={-1.0,-1.0};
 vector< float > pcd; // Pc & Pd inheritances: 0.0 <= p <= 1.0 and is constant value otherwise -1 implies usual mutation
-bool savePlays;
-bool discrete;
+vector< float > fcdmi; // fraction of initial C,D,M,I players
 
-using namespace std;
+namespace g {
+	string experimentID;
+	int replicateID;
 
-int update=0;
+	double mutationRate;
+	double replacementRate=0.02;
+
+	double beta;
+	double gamma;
+	float rMultiplier;
+	double zeta;
+	int radius=32;
+	int updates=42;
+	bool savePlays;
+	bool deterministic;
+	int update=0;
+}
 
 class tPlayer{
 public:
@@ -689,24 +691,88 @@ struct PopulationFrequencies {
       i/=total;
       return;
    }
+	void round() {
+		if (c < 1) c = 0;
+		if (d < 1) d = 0;
+		if (m < 1) m = 0;
+		if (i < 1) i = 0;
+		return;
+	}
 };
+
+struct ScoreDelta {
+	unsigned int x,y;
+	double value;
+	char play;
+};
+
+// processes a subsection of the population
+void threadedEvaluateFitness(int chunkBegin, int chunkEnd, const vector<vector<tPlayer*>>& player, PopulationFrequencies& frequencies, vector<ScoreDelta>& scoreDeltas) {
+	int row(0), col(0), z(0);
+   double pool(0.0);
+	unsigned char N[neighbors], done[neighbors+1];
+	frequencies.c=0; frequencies.d=0; frequencies.m=0; frequencies.i=0; 
+	for (int chunk_index=chunkBegin; chunk_index<chunkEnd; chunk_index++) {
+		row = chunk_index / xDim;
+		col = chunk_index % xDim;
+		for(z=0;z<neighbors;z++) {
+			N[z] = 0;
+		}
+		for(z=0;z<neighbors+1;z++){ // for all neighbors and self as last 'neighbor'
+			done[z]=player[(row+xm[z])&(xDim-1)][(col+ym[z])&(yDim-1)]->move();
+			//player[(row+xm[z])&(xDim-1)][(col+ym[z])&(yDim-1)]->plays.push_back(done[z]); // record play
+			N[done[z]]++;
+		}
+      frequencies.c+=N[C]; frequencies.d+=N[D]; frequencies.m+=N[M]; frequencies.i+=N[I];
+		//if ( randDouble() <  expx[ N[C]+N[M]+1 - g::rMultiplier + neighbors+1 ] ) pool = g::rMultiplier;
+		if ( randDouble() < 1.0 / ( 1.0 + exp(-( N[C]+N[M]+1 - g::rMultiplier )) ) ) pool = g::rMultiplier;
+		else pool = 0.0;
+		for(z=0;z<neighbors+1;z++) {
+			ScoreDelta score;
+			score.play = done[z];
+			score.x=(row+xm[z])&(xDim-1);
+			score.y=(col+ym[z])&(yDim-1);
+			switch(done[z]){
+				case C: //C ooperator
+					//player[(row+xm[z])&(xDim-1)][(col+ym[z])&(yDim-1)]->score+=( ((g::rMultiplier*pool)/((double)neighbors+1.0))-1.0);//offset_min )/offset_max;
+					score.value=( ((g::rMultiplier*pool)/((double)neighbors+1.0))-1.0);
+					break;
+				case D: //D efector
+					//player[(row+xm[z])&(xDim-1)][(col+ym[z])&(yDim-1)]->score+=( ((g::rMultiplier*pool)/((double)neighbors+1.0))-(g::beta*((double)N[M]+(double)N[I])/((double)neighbors)));//offset_min )/offset_max;
+					score.value=( ((g::rMultiplier*pool)/((double)neighbors+1.0))-(g::beta*((double)N[M]+(double)N[I])/((double)neighbors)));
+					break;
+				case M://M oralist
+					//player[(row+xm[z])&(xDim-1)][(col+ym[z])&(yDim-1)]->score+=( ((g::rMultiplier*pool)/((double)neighbors+1.0))-1.0-(g::gamma*((double)N[D]+(double)N[I])/((double)neighbors)));//offset_min )/offset_max;
+					score.value=( ((g::rMultiplier*pool)/((double)neighbors+1.0))-1.0-(g::gamma*((double)N[D]+(double)N[I])/((double)neighbors)));
+					break;
+				case I://I moralist
+					//player[(row+xm[z])&(xDim-1)][(col+ym[z])&(yDim-1)]->score+=( ((g::rMultiplier*pool)/((double)neighbors+1.0))-(g::beta*((double)N[M]+(double)N[I]-(double)1.0)/((double)neighbors))-(g::gamma*((double)N[D]+(double)N[I])/((double)neighbors)));//offset_min )/offset_max;
+					score.value=( ((g::rMultiplier*pool)/((double)neighbors+1.0))-(g::beta*((double)N[M]+(double)N[I]-(double)1.0)/((double)neighbors))-(g::gamma*((double)N[D]+(double)N[I])/((double)neighbors)));
+					break;
+			}
+			//player[(row+xm[z])&(xDim-1)][(col+ym[z])&(yDim-1)]->score = fmax(0.0,player[(row+xm[z])&(xDim-1)][(col+ym[z])&(yDim-1)]->score);
+			//scoreDeltas.push_back(score);
+			scoreDeltas[chunk_index-chunkBegin] = score;
+		}
+	}
+}
 
 int main (int argc, char* argv[]) {
    int x,y,z,i;
-   unsigned char N[possibleMoves],done[neighbors+1];
    double maxFit,localFit;
    unsigned int maxFitPlayerX,maxFitPlayerY;
-   double pool=0.0;
    vector< vector<tPlayer*> > player;
    vector< PopulationFrequencies* > census;
-   PopulationFrequencies* frequencies;
-   int lxm[4],lym[4];
+	PopulationFrequencies* frequencies;
+   int lxm[neighbors],lym[neighbors];
    srand(getpid());
    bool debug;
 
    bool showhelp;
    /// Filenames
+#pragma optimize off
    string filenameLOD;
+#pragma optimize on
    string filenameGenome;
    string filenamePOP;
    string filenameEnd;
@@ -716,104 +782,150 @@ int main (int argc, char* argv[]) {
    FILE *fileEnd;
    /// other parameters
    int nthreads;
+	vector<thread> threads;
+
    
    /// required
-	addp(TYPE::STRING, &experimentID, "--experiment", "unique identifier for this experiment, shared by all replicates.");
-	addp(TYPE::INT, &replicateID, "--replicate", "unique number to identify this replicate in this experiment.");
+	addp(TYPE::STRING, &g::experimentID, "--experiment", "unique identifier for this experiment, shared by all replicates.");
+	addp(TYPE::INT, &g::replicateID, "--replicate", "unique number to identify this replicate in this experiment.");
    /// not required
 	addp(TYPE::BOOL, &showhelp);
    addp(TYPE::BOOL, &debug, "false", false, "--debug", "enables verbose printing.");
-   addp(TYPE::BOOL, &savePlays, "false", false, "--savePlays", "Exports play history in line of descent output.");
-   addp(TYPE::BOOL, &discrete, "false", false, "--discrete", "Forces a discrete strategy simulation (random initial pop).");
-   addp(TYPE::DOUBLE, &beta, "0.02", false, "--beta", "Beta parameter: effect of punishment.");
-   addp(TYPE::DOUBLE, &kappa, "0.02", false, "--kappa", "Kappa parameter: cost of punishment.");
-   addp(TYPE::DOUBLE, &rMultiplier, "3.5", false, "--rmult", "R multiplier parameter.");
-   addp(TYPE::DOUBLE, &threshold, "1.0", false, "--threshold", "Payoff threshold for group success.");
-   addp(TYPE::INT, &radius, "32", false, "--radius", "Length of one side of square group region, 32 is K=1024 which implies well-mixed since popoulation is 1024.");
+   addp(TYPE::BOOL, &g::savePlays, "false", false, "--savePlays", "Exports play history in line of descent output.");
+   addp(TYPE::BOOL, &g::deterministic, "false", false, "--deterministic", "Forces a deterministic strategy simulation (random initial pop).");
+   addp(TYPE::DOUBLE, &g::beta, "0.02", false, "--beta", "Beta parameter: effect of punishment.");
+   addp(TYPE::DOUBLE, &g::gamma, "0.02", false, "--gamma", "Gamma parameter: cost of punishment.");
+   addp(TYPE::FLOAT, &g::rMultiplier, "15", false, "--r", "R multiplier parameter.");
+   addp(TYPE::DOUBLE, &g::zeta, "1.0", false, "--zeta", "Payoff zeta for group success.");
+   addp(TYPE::INT, &g::radius, "32", false, "--radius", "Length of one side of square group region, 32 is K=1024 which implies well-mixed since popoulation is 1024.");
 	addp(TYPE::STRING, &filenameLOD, "none", false, "--lod", "filename to save Line of Descent.");
 	addp(TYPE::STRING, &filenameGenome, "none", false, "--genome", "filename to save LCA genome.");
 	addp(TYPE::STRING, &filenamePOP, "none", false, "--pop", "filename to save population frequencies.");
    addp(TYPE::STRING, &filenameEnd, "none", false, "--end", "filename to save best genome and pop frequencies.");
-	addp(TYPE::INT, &updates, "200", false, "--updates", "number of updates to simulate (not generations).");
+	addp(TYPE::INT, &g::updates, "200", false, "--updates", "number of updates to simulate (not generations).");
 	addp(TYPE::INT, &nthreads, "1", false, "--nthreads", (string("number of threads to use. This system reports ")+ to_string(thread::hardware_concurrency())+ string(" cores available.")).c_str());
    addp(TYPE::FLOAT, &pcd, 2, "-1.0", false, "--pcd", "The probabilities for cooperation and defection (0-1)");
-   addp(TYPE::DOUBLE, &mutationRate, "0.05", false, "--mu", "mutation rate (per site)");
+	addp(TYPE::FLOAT, &fcdmi, 4, "-1.0", false, "--fcdmi", "The initial population frequencies for C D M I (0-1) (forces deterministic)");
+   addp(TYPE::DOUBLE, &g::mutationRate, "0.05", false, "--mu", "mutation rate (per site)");
 
 	argparse(argv);
 	if (showhelp) {
-		cout << argdetails() << endl;
-		cout << "Example minimal invocation:" << endl;
-		cout << argv[0] << " --experiment=deterministic --replicate=1 --lod=lineOfDescent.lod --genome=genome.gen" << endl;
-		cout << "or" << endl;
-		cout << argv[0] << " --experiment deterministic --replicate 1 --lod lineOfDescent.lod --genome genome.gen" << endl;
-		cout << endl;
+		std::cout << argdetails() << std::endl;
+		std::cout << "Example minimal invocation:" << std::endl;
+		std::cout << argv[0] << " --experiment=deterministic --replicate=1 --lod=lineOfDescent.lod --genome=genome.gen" << std::endl;
+		std::cout << "or" << std::endl;
+		std::cout << argv[0] << " --experiment deterministic --replicate 1 --lod lineOfDescent.lod --genome genome.gen" << std::endl;
+		std::cout << std::endl;
+		std::cout << string("There are ") + to_string(neighbors) + string(" neighbors defined in this build.") << std::endl;
+		std::cout << std::endl;
 		exit(0);
 	}
    float bounty = 0.0;
    float offset_min = 0.0;
    float offset_max = 0.0;
+	// precompute the exponential function of # coop and probability of success
+//	for (int i= 0; i<2*(neighbors+1); i++) { /// remember to offset by neighbors when indexing into expx ex: expx[2+neighbors]
+//		expx[i] = 1.0 / ( 1.0 + exp(-i+neighbors+1) );
+//	}
 //   //C ooperator
-//   ((rMultiplier*pool)/((double)neighbors+1.0))-1.0;
+//   ((g::rMultiplier*pool)/((double)neighbors+1.0))-1.0;
 //   //D efector
-//   ((rMultiplier*pool)/((double)neighbors+1.0))-(beta*((double)N[M]+(double)N[I])/((double)neighbors));
+//   ((g::rMultiplier*pool)/((double)neighbors+1.0))-(g::beta*((double)N[M]+(double)N[I])/((double)neighbors));
 //   //M oralist
-//   ((rMultiplier*pool)/((double)neighbors+1.0))-1.0-(kappa*((double)N[D]+(double)N[I])/((double)neighbors));
+//   ((g::rMultiplier*pool)/((double)neighbors+1.0))-1.0-(g::gamma*((double)N[D]+(double)N[I])/((double)neighbors));
 //   //I moralist
-//   ((rMultiplier*pool)/((double)neighbors+1.0))-(beta*((double)N[M]+(double)N[I]-(double)1.0)/((double)neighbors))-(kappa*((double)N[D]+(double)N[I])/((double)neighbors));
+//   ((g::rMultiplier*pool)/((double)neighbors+1.0))-(g::beta*((double)N[M]+(double)N[I]-(double)1.0)/((double)neighbors))-(g::gamma*((double)N[D]+(double)N[I])/((double)neighbors));
    //
    player.resize(xDim);
-   for(x=0;x<xDim;x++){
+   for(x=0;x<xDim;x++) {
       player[x].resize(yDim);
-      for(y=0;y<yDim;y++)
+      for(y=0;y<yDim;y++) {
          player[x][y]=new tPlayer;
+		}
    }
-   for(update=1;update<updates;update++){
+	vector<PopulationFrequencies> threadFrequencies;
+	threadFrequencies.resize(nthreads);
+	PopulationFrequencies nonthreadFrequencies;
+	vector<vector<ScoreDelta>> threadScoreDeltas;
+	threadScoreDeltas.resize(nthreads);
+	vector<ScoreDelta> nonthreadScoreDeltas;
+   for(g::update=1;g::update<g::updates;g::update++){
       frequencies = new PopulationFrequencies;
       frequencies->c=0; frequencies->d=0; frequencies->m=0; frequencies->i=0; 
       for(x=0;x<neighbors;x++){ // well-mix
          xm[x] = (rand()&31) * (-1*rand()&1);
          ym[x] = (rand()&31) * (-1*rand()&1);
       }
-      for(x=0;x<xDim;x++)
-         for(y=0;y<yDim;y++){
-            for(z=0;z<possibleMoves;z++)
-               N[z]=0;
-            for(z=0;z<neighbors+1;z++){ // for all neighbors and self as last 'neighbor'
-               done[z]=player[(x+xm[z])&(xDim-1)][(y+ym[z])&(yDim-1)]->move();
-               player[(x+xm[z])&(xDim-1)][(y+ym[z])&(yDim-1)]->plays.push_back(done[z]); // record play
-               N[done[z]]++;
-            }
-            frequencies->c+=N[C]; frequencies->d+=N[D]; frequencies->m+=N[M]; frequencies->i+=N[I];
-            if (N[C]+N[M] >= threshold) pool=5.0;
-            else pool=0.0;
-            //else if (N[C]+N[M] < threshold) pool=0.0;
-            //else pool=2.5;
-            bounty = ((rMultiplier*pool)/((double)neighbors+1.0));
-            offset_min = fmin( bounty-1.0, fmin( bounty-(beta*((double)N[M]+(double)N[I])/((double)neighbors)), fmin( bounty-1.0-(kappa*((double)N[D]+(double)N[I])/((double)neighbors)),bounty-(beta*((double)N[M]+(double)N[I]-(double)1.0)/((double)neighbors))-(kappa*((double)N[D]+(double)N[I])/((double)neighbors)) ) ) );
-            offset_max = fmax( bounty-1.0, fmax( bounty-(beta*((double)N[M]+(double)N[I])/((double)neighbors)), fmax( bounty-1.0-(kappa*((double)N[D]+(double)N[I])/((double)neighbors)),bounty-(beta*((double)N[M]+(double)N[I]-(double)1.0)/((double)neighbors))-(kappa*((double)N[D]+(double)N[I])/((double)neighbors)) ) ) );
-            offset_max += offset_min*-1.0;
-            offset_min *= -1.0;
-            offset_min = 0.0;
-            offset_max = 1.0;
-            for(z=0;z<neighbors+1;z++) {
-               switch(done[z]){
-                  case C: //C ooperator
-                     player[(x+xm[z])&(xDim-1)][(y+ym[z])&(yDim-1)]->score+=( ((rMultiplier*pool)/((double)neighbors+1.0))-1.0+offset_min )/offset_max;
-                     break;
-                  case D: //D efector
-                     player[(x+xm[z])&(xDim-1)][(y+ym[z])&(yDim-1)]->score+=( ((rMultiplier*pool)/((double)neighbors+1.0))-(beta*((double)N[M]+(double)N[I])/((double)neighbors))+offset_min )/offset_max;
-                     break;
-                  case M://M oralist
-                     player[(x+xm[z])&(xDim-1)][(y+ym[z])&(yDim-1)]->score+=( ((rMultiplier*pool)/((double)neighbors+1.0))-1.0-(kappa*((double)N[D]+(double)N[I])/((double)neighbors))+offset_min )/offset_max;
-                     break;
-                  case I://I moralist
-                     player[(x+xm[z])&(xDim-1)][(y+ym[z])&(yDim-1)]->score+=( ((rMultiplier*pool)/((double)neighbors+1.0))-(beta*((double)N[M]+(double)N[I]-(double)1.0)/((double)neighbors))-(kappa*((double)N[D]+(double)N[I])/((double)neighbors))+offset_min )/offset_max;
-                     break;
-               }
-               player[(x+xm[z])&(xDim-1)][(y+ym[z])&(yDim-1)]->score = fmax(0.0,player[(x+xm[z])&(xDim-1)][(y+ym[z])&(yDim-1)]->score);
-            }
-      }
-      if (debug && (update&511) == 511) {
+		/// multithreading version
+		threads.clear();
+		int chunksize=(xDim*yDim)/nthreads;
+		/// resize scoreDeltas to be the size of each thread workload
+		for (auto& each_scoreset : threadScoreDeltas) {
+			each_scoreset.resize(chunksize);
+		}
+		nonthreadScoreDeltas.resize( (xDim*yDim)%nthreads );
+		/// launch threads
+		for (int threadid=0; threadid < nthreads; threadid++) {
+			threads.push_back( thread( threadedEvaluateFitness, chunksize*threadid, chunksize*threadid+chunksize, ref(player), ref(threadFrequencies[threadid]), ref(threadScoreDeltas[threadid]) ) );
+		}
+		/// use host thread for any remainder
+		if ((xDim*yDim)%nthreads != 0) { // take care of any uneven division of workload
+			threads.push_back( thread( threadedEvaluateFitness, nthreads*chunksize, xDim*yDim, ref(player), ref(nonthreadFrequencies), ref(nonthreadScoreDeltas) ) );
+		}
+		for (thread& t : threads) t.join(); // wait for all threads to finish
+		/// play counts
+		for (auto& f : threadFrequencies) { /// threaded frequencies
+			frequencies->c+=f.c; frequencies->d+=f.d; frequencies->m+=f.m; frequencies->i+=f.i;
+		}
+		frequencies->c+=nonthreadFrequencies.c; frequencies->d+=nonthreadFrequencies.d; frequencies->m+=nonthreadFrequencies.m; frequencies->i+=nonthreadFrequencies.i; /// nonthreaded frequencies
+		frequencies->round();
+		/// fitness gains
+		for (auto& scoreCollection : threadScoreDeltas) { /// threaded fitness gains
+			for (auto& scoring : scoreCollection) {
+				player[scoring.x][scoring.y]->score += scoring.value;
+				player[scoring.x][scoring.y]->plays.push_back( scoring.play );
+			}
+		}
+		for (auto& scoring : nonthreadScoreDeltas) { /// nonthreaded fitness gains
+			player[scoring.x][scoring.y]->score += scoring.value;
+			player[scoring.x][scoring.y]->plays.push_back( scoring.play );
+		}
+		/// fix possible negative fitnesses
+		for (x=0; x<xDim; x++)
+			for (y=0; y<yDim; y++)
+				player[x][y]->score = fmax(0.0, player[x][y]->score);
+		/// single-threaded version
+      //for(x=0;x<xDim;x++)
+      //   for(y=0;y<yDim;y++){
+      //      for(z=0;z<possibleMoves;z++)
+      //         N[z]=0;
+      //      for(z=0;z<neighbors+1;z++){ // for all neighbors and self as last 'neighbor'
+      //         done[z]=player[(x+xm[z])&(xDim-1)][(y+ym[z])&(yDim-1)]->move();
+      //         player[(x+xm[z])&(xDim-1)][(y+ym[z])&(yDim-1)]->plays.push_back(done[z]); // record play
+      //         N[done[z]]++;
+      //      }
+      //      frequencies->c+=N[C]; frequencies->d+=N[D]; frequencies->m+=N[M]; frequencies->i+=N[I];
+		//		if ( randDouble() <  expx[ N[C]+N[M]+1 - g::rMultiplier ]) pool = neighbors+1;
+		//		else pool = 0.0;
+      //      for(z=0;z<neighbors+1;z++) {
+      //         switch(done[z]){
+      //            case C: //C ooperator
+      //               player[(x+xm[z])&(xDim-1)][(y+ym[z])&(yDim-1)]->score+=( ((g::rMultiplier*pool)/((double)neighbors+1.0))-1.0);//offset_min )/offset_max;
+      //               break;
+      //            case D: //D efector
+      //               player[(x+xm[z])&(xDim-1)][(y+ym[z])&(yDim-1)]->score+=( ((g::rMultiplier*pool)/((double)neighbors+1.0))-(g::beta*((double)N[M]+(double)N[I])/((double)neighbors)));//offset_min )/offset_max;
+      //               break;
+      //            case M://M oralist
+      //               player[(x+xm[z])&(xDim-1)][(y+ym[z])&(yDim-1)]->score+=( ((g::rMultiplier*pool)/((double)neighbors+1.0))-1.0-(g::gamma*((double)N[D]+(double)N[I])/((double)neighbors)));//offset_min )/offset_max;
+      //               break;
+      //            case I://I moralist
+      //               player[(x+xm[z])&(xDim-1)][(y+ym[z])&(yDim-1)]->score+=( ((g::rMultiplier*pool)/((double)neighbors+1.0))-(g::beta*((double)N[M]+(double)N[I]-(double)1.0)/((double)neighbors))-(g::gamma*((double)N[D]+(double)N[I])/((double)neighbors)));//offset_min )/offset_max;
+      //               break;
+      //         }
+      //         player[(x+xm[z])&(xDim-1)][(y+ym[z])&(yDim-1)]->score = fmax(0.0,player[(x+xm[z])&(xDim-1)][(y+ym[z])&(yDim-1)]->score);
+      //      }
+      //}
+      if (debug && (g::update&511) == 511) {
          maxFit=0.0;
          for(x=0;x<xDim;x++) {
             for(y=0;y<yDim;y++) {
@@ -825,17 +937,17 @@ int main (int argc, char* argv[]) {
             }
          }
       }
-      for(z=0;z<xDim*yDim*replacementRate;z++){
+      for(z=0;z<xDim*yDim*g::replacementRate;z++){
          do{
             x=rand()&(xDim-1);
             y=rand()&(yDim-1);
-         } while(player[x][y]->born==update);
+         } while(player[x][y]->born==g::update);
          localFit=0.0;
          
          for(i=0;i<neighbors;i++){
             do{
-               lxm[i]=rand()%radius;
-               lym[i]=rand()%radius;
+               lxm[i]=rand()%g::radius;
+               lym[i]=rand()%g::radius;
                if((rand()&1)==0) lxm[i]=-lxm[i];
                if((rand()&1)==0) lym[i]=-lym[i];
             } while((lxm[i]==0)&&(lym[i]==0));
@@ -856,8 +968,8 @@ int main (int argc, char* argv[]) {
          player[x][y]=new tPlayer;
          player[x][y]->inherit(player[(x+lxm[i])&(xDim-1)][(y+lym[i])&(yDim-1)]);
       }
-      //if (debug && (update&511) == 511) cout<< update<<" "<<maxFit<<" "<<player[maxFitPlayerX][maxFitPlayerY]->probs[0]<<" "<<player[maxFitPlayerX][maxFitPlayerY]->probs[1]<<endl;
-      if (debug && (update&511) == 511) cout<<frequencies->c<<" "<<frequencies->d<<" "<<frequencies->m<<" "<<frequencies->i<<endl;
+      //if (debug && (g::update&511) == 511) std::cout<< g::update<<" "<<maxFit<<" "<<player[maxFitPlayerX][maxFitPlayerY]->probs[0]<<" "<<player[maxFitPlayerX][maxFitPlayerY]->probs[1]<<std::endl;
+      if (debug && (g::update&511) == 511) std::cout<<frequencies->c<<" "<<frequencies->d<<" "<<frequencies->m<<" "<<frequencies->i<<std::endl;
       frequencies->normalize();
       census.push_back(frequencies);
       if (frequencies->c == 1.0 || frequencies->d == 1.0 || frequencies->m == 1.0 || frequencies->i == 1.0) {
@@ -867,10 +979,21 @@ int main (int argc, char* argv[]) {
    }
    if (filenameLOD != "none") {
       fileLOD=fopen(cstr(filenameLOD),"w+t");
-      if (savePlays)
-         fprintf( fileLOD,"%s %s %s %s %s %s %s %s %s %s\n","experiment","replicate","born","p0","p1","pc","pd","pm","pi","plays" );
+      if (g::savePlays)
+         fprintf( fileLOD, "%s %s %s %s %s %s %s %s %s %s %s %s %s %s\n",
+               "experiment", "replicate", "born",
+               "r","zeta","beta","gamma",
+               "p0","p1",
+               "pc","pd","pm","pi",
+               "plays" );
+         //fprintf( fileLOD,"%s %s %s %s %s %s %s %s %s %s\n","experiment","replicate","born","p0","p1","pc","pd","pm","pi","plays" );
       else
-         fprintf( fileLOD,"%s %s %s %s %s %s %s %s %s\n","experiment","replicate","born","p0","p1","pc","pd","pm","pi" );
+         fprintf( fileLOD, "%s %s %s %s %s %s %s %s %s %s %s %s %s\n",
+               "experiment", "replicate", "born",
+               "r","zeta","beta","gamma",
+               "p0","p1",
+               "pc","pd","pm","pi" );
+         //fprintf( fileLOD,"%s %s %s %s %s %s %s %s %s\n","experiment","replicate","born","p0","p1","pc","pd","pm","pi" );
       player[0][0]->exportLOD(fileLOD);
       fclose(fileLOD);
    }
@@ -892,15 +1015,15 @@ int main (int argc, char* argv[]) {
       if (fileEndExists == false) {
          fprintf( fileEnd, "%s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s\n",
                "experiment", "replicate",
-               "r","xi","beta","kappa",
+               "r","zeta","beta","gamma",
                "c","d","m","i",
                "p0","p1",
                "pc","pd","pm","pi" );
       }
       tPlayer* LCA = player[0][0]->ancestor->ancestor->ancestor;
       fprintf(fileEnd, "%s %d %f %f %f %f %f %f %f %f %f %f %f %f %f %f\n",
-            cstr(experimentID), replicateID,
-            rMultiplier, threshold, beta, kappa,
+            cstr(g::experimentID), g::replicateID,
+            g::rMultiplier, g::zeta, g::beta, g::gamma,
             frequencies->c, frequencies->d, frequencies->m, frequencies->i,
             LCA->probs[0],LCA->probs[1],
             LCA->probs[0]*LCA->probs[1],
@@ -914,20 +1037,37 @@ int main (int argc, char* argv[]) {
 
 tPlayer::tPlayer() {
    int i;
-   for(i=0;i<genes;i++) {
-      if (pcd[i] == -1.0) {
-         probs[i]=0.5;
-      } else {
-         probs[i]=pcd[i];
-      }
-   }
-   if (discrete) {
-      action=((rand()&1)<<1) + (rand()&1);
+	if (fcdmi[0] != -1.0) {
+		double rnd = randDouble();
+		if (rnd <= fcdmi[0]) { probs[0]=1.0; probs[1]=1.0; }
+		else if (rnd <= fcdmi[0]+fcdmi[1]) { probs[0]=1.0; probs[1]=0.0; }
+		else if (rnd <= fcdmi[0]+fcdmi[1]+fcdmi[2]) { probs[0]=0.0; probs[1]=1.0; }
+		else { probs[0]=0.0; probs[1]=0.0; }
+	} else {
+		for(i=0;i<genes;i++) {
+			if (pcd[i] == -1.0) {
+				probs[i]=0.5;
+			} else {
+				probs[i]=pcd[i];
+			}
+		}
+	}
+   if (g::deterministic) {
+		if (fcdmi[0] != -1.0) { // if exact player types specified
+			action=0;
+			for(i=0;i<genes;i++)
+				if(randDouble()<probs[i])
+					action=action<<1;
+				else
+					action=(action<<1)+1;
+		} else { // otherwise pick a random action for this player's life
+			action=((rand()&1)<<1) + (rand()&1);
+		}
    }
    score=0;
    ancestor=NULL;
    nrPointingAtMe=1;
-   born=update;
+   born=g::update;
 }
 
 tPlayer::~tPlayer() {
@@ -941,7 +1081,7 @@ tPlayer::~tPlayer() {
 unsigned char tPlayer::move(void) {
    unsigned char r=0;
    int i;
-   if (discrete) {
+   if (g::deterministic) {
       r=action;
    } else {
    for(i=0;i<genes;i++)
@@ -955,8 +1095,8 @@ unsigned char tPlayer::move(void) {
 void tPlayer::inherit(tPlayer *from) {
    ancestor=from;
    ancestor->nrPointingAtMe++;
-   if (discrete) {
-      if (randDouble()<mutationRate)
+   if (g::deterministic) {
+      if (randDouble()<g::mutationRate)
          action=((rand()&1)<<1) + (rand()&1);
       else
          action=from->action;
@@ -972,7 +1112,7 @@ void tPlayer::inherit(tPlayer *from) {
 }
 
 double tPlayer::inheritGene(int w) {
-   if(randDouble()<mutationRate)
+   if(randDouble()<g::mutationRate && not g::deterministic)
       return randDouble();
    else
       return probs[w];
@@ -983,18 +1123,35 @@ int breakcount=1000;
 void tPlayer::exportLOD(FILE *f) {
    if(ancestor!=NULL)
       ancestor->exportLOD(f);
-   if (savePlays)
-      fprintf( f,"%s %d %d %f %f %f %f %f %f %s\n",cstr(experimentID),replicateID,born,probs[0],probs[1],
+   if (g::savePlays)
+      /*fprintf( f,"%s %d %d %f %f %f %f %f %f %s\n",cstr(g::experimentID),g::replicateID,born,probs[0],probs[1],
             (probs[0])*(probs[1]),
             (probs[0])*(1.0-probs[1]),
             (1.0-probs[0])*(probs[1]),
             (1.0-probs[0])*(1.0-probs[1]),
+            getPlayHistoryAsString() );*/
+      fprintf( f, "%s %d %d %f %f %f %f %f %f %f %f %f %f %s\n",
+            cstr(g::experimentID), g::replicateID, born,
+            g::rMultiplier, g::zeta, g::beta, g::gamma,
+            probs[0],probs[1],
+            probs[0]*probs[1],
+            probs[0]*(1.0-probs[1]),
+            (1.0-probs[0])*probs[1],
+            (1.0-probs[0])*(1.0-probs[1]),
             getPlayHistoryAsString() );
    else
-      fprintf( f,"%s %d %d %f %f %f %f %f %f\n",cstr(experimentID),replicateID,born,probs[0],probs[1],
+      /*fprintf( f,"%s %d %d %f %f %f %f %f %f\n",cstr(g::experimentID),g::replicateID,born,probs[0],probs[1],
             (probs[0])*(probs[1]),
             (probs[0])*(1.0-probs[1]),
             (1.0-probs[0])*(probs[1]),
+            (1.0-probs[0])*(1.0-probs[1]) );*/
+      fprintf( f, "%s %d %d %f %f %f %f %f %f %f %f %f %f\n",
+            cstr(g::experimentID), g::replicateID, born,
+            g::rMultiplier, g::zeta, g::beta, g::gamma,
+            probs[0],probs[1],
+            probs[0]*probs[1],
+            probs[0]*(1.0-probs[1]),
+            (1.0-probs[0])*probs[1],
             (1.0-probs[0])*(1.0-probs[1]) );
 }
 
@@ -1007,7 +1164,7 @@ char* tPlayer::getPlayHistoryAsString(){
    return history;
 }
 	
-//	agent[0]->ancestor->saveLOD(LODFile,genomeFile, experimentID, replicateID, -1); // -1 to tell saveLOD to make header for csv
+//	agent[0]->ancestor->saveLOD(LODFile,genomeFile, g::experimentID, g::replicateID, -1); // -1 to tell saveLOD to make header for csv
 //	if (stopOnLimit) {
 //		float maxPhi=0.0;
 //		tAgent* bestAgent=nullptr;
