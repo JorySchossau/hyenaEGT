@@ -1,9 +1,10 @@
 CXX=g++
-CPPFLAGS=-pthread -std=c++11 -O3
+CPPFLAGS=-pthread -std=c++11
 
-all: public
+release: CXX += -O3
+release: public
 
-debug: CPPFLAGS += -g
+debug: CXX += -gdwarf-3 -g3 -pg
 debug: public
 
 public: main.o
