@@ -115,6 +115,27 @@ struct PopulationFrequencies {
 	}
 };
 
+namespace Threshold {
+	enum type {Stepwise, StepwiseHalf, Sigmoid}; // other types StepwiseHalf, Sigmoid
+}
+
+inline float threshold(const float val, Threshold::type type = Threshold::Stepwise) {
+	float result(0.0);
+	switch(type) {
+		case Threshold::Stepwise:
+			result = (val < 0.0) ? 0.0 : 1.0;
+			break;
+		case Threshold::StepwiseHalf:
+			result = (val < 0.0) ? 0.0 : 1.0;
+			if (val == 0.0) result = 0.5;
+			break;
+		case Threshold::Sigmoid:
+			result = 1.0 / ( 1.0 + exp( -val * 100.0 ) );
+			break;
+	}
+	return result;
+}
+
 
 int main (int argc, char* argv[]) {
    int x,y,z,i;
@@ -207,21 +228,21 @@ int main (int argc, char* argv[]) {
                N[done[z]]++;
             }
             frequencies->c+=N[C]; frequencies->d+=N[D]; frequencies->m+=N[M]; frequencies->i+=N[I];
-				if ( randDouble() < 1.0 / ( 1.0 + exp(-( N[C]+N[M]+1 - g::rMultiplier )) ) ) pool = neighbors+1;
+				if ( randDouble() < threshold(N[C]+N[M]+1-g::rMultiplier, Threshold::Stepwise) ) pool = neighbors+1;
 				else pool = 0.0;
             for(z=0;z<neighbors+1;z++) {
                switch(done[z]){
                   case C: //C ooperator
-                     player[(x+xm[z])&(xDim-1)][(y+ym[z])&(yDim-1)]->score+=( ((g::rMultiplier*pool)/((double)neighbors+1.0))-1.0);
+                     player[(x+xm[z])&(xDim-1)][(y+ym[z])&(yDim-1)]->score+=( (((g::rMultiplier)*pool)/((double)neighbors+1.0))-1.0);
                      break;
                   case D: //D efector
-                     player[(x+xm[z])&(xDim-1)][(y+ym[z])&(yDim-1)]->score+=( ((g::rMultiplier*pool)/((double)neighbors+1.0))-(g::beta*((double)N[M]+(double)N[I])/((double)neighbors)));
+                     player[(x+xm[z])&(xDim-1)][(y+ym[z])&(yDim-1)]->score+=( (((g::rMultiplier)*pool)/((double)neighbors+1.0))-(g::beta*((double)N[M]+(double)N[I])/((double)neighbors)));
                      break;
                   case M://M oralist
-                     player[(x+xm[z])&(xDim-1)][(y+ym[z])&(yDim-1)]->score+=( ((g::rMultiplier*pool)/((double)neighbors+1.0))-1.0-(g::gamma*((double)N[D]+(double)N[I])/((double)neighbors)));
+                     player[(x+xm[z])&(xDim-1)][(y+ym[z])&(yDim-1)]->score+=( (((g::rMultiplier)*pool)/((double)neighbors+1.0))-1.0-(g::gamma*((double)N[D]+(double)N[I])/((double)neighbors)));
                      break;
                   case I://I moralist
-                     player[(x+xm[z])&(xDim-1)][(y+ym[z])&(yDim-1)]->score+=( ((g::rMultiplier*pool)/((double)neighbors+1.0))-(g::beta*((double)N[M]+(double)N[I]-(double)1.0)/((double)neighbors))-(g::gamma*((double)N[D]+(double)N[I])/((double)neighbors)));
+                     player[(x+xm[z])&(xDim-1)][(y+ym[z])&(yDim-1)]->score+=( (((g::rMultiplier)*pool)/((double)neighbors+1.0))-(g::beta*((double)N[M]+(double)N[I]-(double)1.0)/((double)neighbors))-(g::gamma*((double)N[D]+(double)N[I])/((double)neighbors)));
                      break;
                }
                player[(x+xm[z])&(xDim-1)][(y+ym[z])&(yDim-1)]->score = fmax(0.0,player[(x+xm[z])&(xDim-1)][(y+ym[z])&(yDim-1)]->score);
@@ -312,15 +333,16 @@ int main (int argc, char* argv[]) {
       if ( fileExists(filenameEnd) ) fileEndExists = true;
       fileEnd=fopen(cstr(filenameEnd), "a+t");
       if (fileEndExists == false) {
-         fprintf( fileEnd, "%s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s\n",
+         fprintf( fileEnd, "%s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s\n",
                "experiment", "replicate",
                "r","zeta","beta","gamma",
                "c","d","m","i",
                "p0","p1",
-               "pc","pd","pm","pi" );
+               "pc","pd","pm","pi",
+				  	"fc","fd","fm","fi" );
       }
       tPlayer* LCA = player[0][0]->ancestor->ancestor->ancestor;
-      fprintf(fileEnd, "%s %d %f %f %f %f %f %f %f %f %f %f %f %f %f %f\n",
+      fprintf(fileEnd, "%s %d %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f\n",
             cstr(g::experimentID), g::replicateID,
             g::rMultiplier, g::zeta, g::beta, g::gamma,
             frequencies->c, frequencies->d, frequencies->m, frequencies->i,
@@ -328,7 +350,8 @@ int main (int argc, char* argv[]) {
             LCA->probs[0]*LCA->probs[1],
             LCA->probs[0]*(1.0-LCA->probs[1]),
             (1.0-LCA->probs[0])*LCA->probs[1],
-            (1.0-LCA->probs[0])*(1.0-LCA->probs[1]));
+            (1.0-LCA->probs[0])*(1.0-LCA->probs[1]),
+				fcdmi[0], fcdmi[1], fcdmi[2], fcdmi[3]);
       fclose(fileEnd);
    }
    return 0;
@@ -351,17 +374,13 @@ tPlayer::tPlayer() {
 			}
 		}
 	}
-   if (g::deterministic) {
-		if (fcdmi[0] != -1.0) { // if exact player types specified
-			action=0;
-			for(i=0;i<genes;i++)
-				if(randDouble()<probs[i])
-					action=action<<1;
-				else
-					action=(action<<1)+1;
-		} else { // otherwise pick a random action for this player's life
-			action=((rand()&1)<<1) + (rand()&1);
-		}
+	if (fcdmi[0] != -1.0) { // if exact player types specified
+		action=0;
+		for(i=0;i<genes;i++)
+			if(randDouble()<probs[i])
+				action=action<<1;
+			else
+				action=(action<<1)+1;
    }
    score=0;
    ancestor=NULL;
