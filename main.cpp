@@ -28,7 +28,6 @@
 
 using namespace Params;
 
-
 bool fileExists(const string& name) {
    struct stat buffer;
    return( stat( name.c_str(), &buffer) == 0); // 0 if no problem and file is existing
@@ -194,6 +193,8 @@ int main (int argc, char* argv[]) {
 		std::cout << argv[0] << " --experiment=deterministic --replicate=1 --lod=lineOfDescent.lod --genome=genome.gen" << std::endl;
 		std::cout << "or" << std::endl;
 		std::cout << argv[0] << " --experiment deterministic --replicate 1 --lod lineOfDescent.lod --genome genome.gen" << std::endl;
+		std::cout << "or" << std::endl;
+		std::cout << argv[0] << " --experiment trial --replicate 1 --end out.end --deterministic --beta 0 --gamma 0 --fcdmi 0.25 0.25 0.25 0.25 --debug --updates 10000 --zeta 0.5 --r 10" << std::endl;
 		std::cout << std::endl;
 		std::cout << string("There are ") + to_string(neighbors) + string(" neighbors defined in this build.") << std::endl;
 		std::cout << std::endl;
