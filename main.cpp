@@ -232,7 +232,7 @@ int main (int argc, char* argv[]) {
                N[done[z]]++;
             }
             frequencies->c+=N[C]; frequencies->d+=N[D]; frequencies->m+=N[M]; frequencies->i+=N[I];
-				if ( randDouble() < threshold(N[C]+N[M]-g::zeta, Threshold::Stepwise) ) pool = neighbors+1;
+				if ( randDouble() < threshold(N[C]+N[M]-g::zeta, Threshold::Stepwise) ) pool = N[C]+N[M];
 				else pool = 0.0;
             for(z=0;z<neighbors+1;z++) {
                switch(done[z]){
