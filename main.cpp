@@ -36,6 +36,7 @@ bool fileExists(const string& name) {
 //void computeLOD(FILE *f,FILE *g, tAgent *agent,tGame *game);
 const char* cstr(string s) { return s.c_str(); }
 double randDouble() { return ((double)rand() / (double)RAND_MAX); }
+float roundTo2(float n) { return float(ceil(n*100))/100.0; }
 
 #define C 1
 #define D 0
@@ -72,6 +73,7 @@ namespace g {
 	int updates=42;
 	bool savePlays;
 	bool deterministic;
+	bool thresholdPayoff;
 	int update=0;
 }
 
@@ -189,6 +191,7 @@ int main (int argc, char* argv[]) {
    addp(TYPE::FLOAT, &ppc, 2, "-1.0", false, "--ppc", "The probabilities for punishment and cooperation (0-1)");
 	addp(TYPE::FLOAT, &fcdmi, 4, "-1.0", false, "--fcdmi", "The initial population frequencies for C D M I (0-1) (forces deterministic)");
    addp(TYPE::DOUBLE, &g::mutationRate, "0.02", false, "--mu", "mutation rate (per site)");
+	addp(TYPE::BOOL, &g::thresholdPayoff, "false", false, "--thresholdPayoff", "Uses the thresholding fn based on Nc to determine if the group receives any payoff.");
 
 	argparse(argv);
 	if (showhelp) {
@@ -210,7 +213,7 @@ int main (int argc, char* argv[]) {
    for(x=0;x<xDim;x++) {
       player[x].resize(yDim);
       for(y=0;y<yDim;y++) {
-         player[x][y]=new tPlayer;
+         player[x][y]=new tPlayer();
 		}
    }
    for(g::update=1;g::update<g::updates;g::update++){
@@ -222,8 +225,6 @@ int main (int argc, char* argv[]) {
 				for(i=0;i<neighbors;i++){ /// create a group to play games
 					xm[i] = (rand()&(g::radius-1)) * ((rand()&2)-1);
 					ym[i] = (rand()&(g::radius-1)) * ((rand()&2)-1);
-					//xm[i]=rand()&(xDim-1);
-					//ym[i]=rand()&(yDim-1);
 				}
             for(z=0;z<possibleMoves;z++) N[z]=0; /// reset group's moves
             for(z=0;z<neighbors+1;z++){ /// everyone makes a play, even 'this' player (last neighbor)
@@ -232,8 +233,12 @@ int main (int argc, char* argv[]) {
                N[done[z]]++;
             }
             frequencies->c+=N[C]; frequencies->d+=N[D]; frequencies->m+=N[M]; frequencies->i+=N[I];
-				if ( randDouble() < threshold(N[C]+N[M]-g::zeta, Threshold::Stepwise) ) pool = N[C]+N[M];
-				else pool = 0.0;
+				if (g::thresholdPayoff) {
+					if ( randDouble() < threshold(N[C]+N[M]-g::zeta, Threshold::Stepwise) ) pool = N[C]+N[M];
+					else pool = 0.0;
+				} else {
+					pool = N[C]+N[M];
+				}
             for(z=0;z<neighbors+1;z++) {
                switch(done[z]){
                   case C: //C ooperator
@@ -299,16 +304,16 @@ int main (int argc, char* argv[]) {
 			player[x][y]=new tPlayer;
 			player[x][y]->inherit(player[(x+lxm[0])&(xDim-1)][(y+lym[0])&(yDim-1)]);
       }
+      frequencies->normalize();
+      census.push_back(frequencies);
       if (debug && (g::update&511) == 511) {
 			tPlayer* ptr = player[0][0];
 			for (i=0; i<500; i++) {
 				if (ptr->ancestor == nullptr) break;
 				ptr = ptr->ancestor;
 			}
-			std::cout<<frequencies->c<<" "<<frequencies->d<<" "<<frequencies->m<<" "<<frequencies->i<<"\t"<<ptr->probs[0]<<"\t"<<ptr->probs[1]<<std::endl;
+			std::cout<<roundTo2(frequencies->c)<<" "<<roundTo2(frequencies->d)<<" "<<roundTo2(frequencies->m)<<" "<<roundTo2(frequencies->i)<<"\t"<<roundTo2(ptr->probs[0])<<"\t"<<roundTo2(ptr->probs[1])<<std::endl;
 		}
-      frequencies->normalize();
-      census.push_back(frequencies);
       if (frequencies->c == 1.0 || frequencies->d == 1.0 || frequencies->m == 1.0 || frequencies->i == 1.0) {
          if (debug) printf( "%f %f %f %f\n",frequencies->c, frequencies->d, frequencies->m, frequencies->i );
          break;
@@ -381,11 +386,18 @@ int main (int argc, char* argv[]) {
 
 tPlayer::tPlayer() {
    int i;
-	if (fcdmi[0] < 0.0) {
+	if (g::deterministic) {
+		double a(0.25),b(0.25),c(0.25),d(0.25);
+		if (fcdmi[0] > 0.0) {
+			a = fcdmi[0];
+			b = fcdmi[1];
+			c = fcdmi[2];
+			d = fcdmi[3];
+		}
 		double rnd = randDouble();
-		if (rnd <= fcdmi[0]) { probs[0]=0.0; probs[1]=1.0; }
-		else if (rnd <= fcdmi[0]+fcdmi[1]) { probs[0]=0.0; probs[0]=0.0; }
-		else if (rnd <= fcdmi[0]+fcdmi[1]+fcdmi[2]) { probs[0]=1.0; probs[1]=1.0; }
+		if (rnd <= a) { probs[0]=0.0; probs[1]=1.0; }
+		else if (rnd <= (a+b)) { probs[0]=0.0; probs[1]=0.0; }
+		else if (rnd <= (a+b+C)) { probs[0]=1.0; probs[1]=1.0; }
 		else { probs[0]=1.0; probs[1]=0.0; }
 	} else {
 		for(i=0;i<genes;i++) {
@@ -396,7 +408,7 @@ tPlayer::tPlayer() {
 			}
 		}
 	}
-	if (fcdmi[0] < 0.0) { // if exact player types specified
+	if (g::deterministic) { // if exact player types specified
 		action=0;
 		for(i=0;i<genes;i++)
 			if(randDouble()<probs[i])
