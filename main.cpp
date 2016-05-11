@@ -245,68 +245,77 @@ int main (int argc, char* argv[]) {
 		param = 0.0;
       for(x=0;x<xDim;x++) {
          for(y=0;y<yDim;y++) {
-				////if ((g::update<2048) && ((x|y)==0)) player[x][y]->probs[1]=1.0;
-				//static int n(0); // number of hunters clan produces
-				//n = player[x][y]->probs[1]*g::clanSize; // Use that genome's probability to determine number of cooperators (hunters)
-				//if ( randDouble() < threshold(n-g::zeta, Threshold::Stepwise) ) { // determine group's score
-				//	player[x][y]->score += n*((static_cast<double>(g::rMultiplier)/static_cast<double>(g::clanSize)) - 1.0) + (g::clanSize-n)*(static_cast<double>(g::rMultiplier)/static_cast<double>(g::clanSize)); // C + D payoffs when above threshold
-				//	frequencies->c+=1;
-				//} else {
-				//	player[x][y]->score += n*(-1) + (g::clanSize-n)*(0); // C + D payoffs when below threshold
-				//	frequencies->d+=1;
-				//}
-				////if (player[x][y]->score < 0.0) player[x][y]->score = 0.0;
-				//param+=player[x][y]->score;
-				////if (player[x][y]->score > param) param=player[x][y]->score;
-				//
-				//if ((g::update&127)==127) {
-				//	if (cursesMode) {
-				//		if (threshold(n-g::zeta, Threshold::Stepwise)) {
-				//			mvaddch(y,x*2,'.'|COLOR_PAIR(1));
-				//			addch('.'|COLOR_PAIR(1));
-				//		} else {
-				//			mvaddch(y,x*2,'.'|COLOR_PAIR(2));
-				//			addch('.'|COLOR_PAIR(2));
-				//		}
-				//	}
-				//}
-				for(i=0;i<neighbors;i++){ /// create a group to play games
-					xm[i] = (rand()&(g::radius-1)) * ((rand()&2)-1);
-					ym[i] = (rand()&(g::radius-1)) * ((rand()&2)-1);
-				}
-            for(z=0;z<possibleMoves;z++) N[z]=0; /// reset group's moves
-            for(z=0;z<neighbors+1;z++){ /// everyone makes a play, even 'this' player (last neighbor)
-               done[z]=player[(x+xm[z])&(xDim-1)][(y+ym[z])&(yDim-1)]->move();
-               player[(x+xm[z])&(xDim-1)][(y+ym[z])&(yDim-1)]->plays.push_back(done[z]); // record play
-               N[done[z]]++;
-            }
-            frequencies->c+=N[C]; frequencies->d+=N[D]; frequencies->m+=N[M]; frequencies->i+=N[I];
-				if (g::thresholdPayoff) {
-					if ( randDouble() < threshold(N[C]+N[M]-g::zeta, Threshold::Stepwise) ) pool = 1.0;
-					else pool = 0.0;
+				//if ((g::update<2048) && ((x|y)==0)) player[x][y]->probs[1]=1.0;
+				static int n(0); // number of hunters clan produces
+				n = player[x][y]->probs[1]*g::clanSize; // Use that genome's probability to determine number of cooperators (hunters)
+				if ( randDouble() < threshold(n-g::zeta, Threshold::Stepwise) ) { // determine group's score
+					player[x][y]->score += n*((static_cast<double>(g::rMultiplier)/static_cast<double>(g::clanSize)) - 1.0) + (g::clanSize-n)*(static_cast<double>(g::rMultiplier)/static_cast<double>(g::clanSize)); // C + D payoffs when above threshold
+					frequencies->c+=1;
 				} else {
-					pool = N[C]+N[M];
+					player[x][y]->score += n*(-1) + (g::clanSize-n)*(0); // C + D payoffs when below threshold
+					frequencies->d+=1;
 				}
-            for(z=0;z<neighbors+1;z++) {
-               switch(done[z]){
-                  case C: //C ooperator
-                     player[(x+xm[z])&(xDim-1)][(y+ym[z])&(yDim-1)]->score+=( (g::rMultiplier)*((pool)/((double)neighbors+1.0))-g::cost);
-                     break;
-                  case D: //D efector
-                     player[(x+xm[z])&(xDim-1)][(y+ym[z])&(yDim-1)]->score+=( (g::rMultiplier)*((pool)/((double)neighbors+1.0))-(g::beta*((double)N[M]+(double)N[I])/((double)neighbors)));
-                     break;
-                  case M://M oralist
-                     player[(x+xm[z])&(xDim-1)][(y+ym[z])&(yDim-1)]->score+=( (g::rMultiplier)*((pool)/((double)neighbors+1.0))-g::cost-(g::gamma*((double)N[D]+(double)N[I])/((double)neighbors)));
-                     break;
-                  case I://I moralist
-                     player[(x+xm[z])&(xDim-1)][(y+ym[z])&(yDim-1)]->score+=( (g::rMultiplier)*((pool)/((double)neighbors+1.0))-(g::beta*((double)N[M]+(double)N[I]-(double)1.0)/((double)neighbors))-(g::gamma*((double)N[D]+(double)N[I])/((double)neighbors)));
-                     break;
-               }
-            }
+				//if (player[x][y]->score < 0.0) player[x][y]->score = 0.0;
+				param+=player[x][y]->score;
+				//if (player[x][y]->score > param) param=player[x][y]->score;
+				
+				if ((g::update&127)==127) {
+					if (cursesMode) {
+						if (threshold(n-g::zeta, Threshold::Stepwise)) {
+							mvaddch(y,x*2,'.'|COLOR_PAIR(1));
+							addch('.'|COLOR_PAIR(1));
+						} else {
+							mvaddch(y,x*2,'.'|COLOR_PAIR(2));
+							addch('.'|COLOR_PAIR(2));
+						}
+					}
+				}
+				//for(i=0;i<neighbors;i++){ /// create a group to play games
+				//	xm[i] = (rand()&(g::radius-1)) * ((rand()&2)-1);
+				//	ym[i] = (rand()&(g::radius-1)) * ((rand()&2)-1);
+				//}
+            //for(z=0;z<possibleMoves;z++) N[z]=0; /// reset group's moves
+            //for(z=0;z<neighbors+1;z++){ /// everyone makes a play, even 'this' player (last neighbor)
+            //   done[z]=player[(x+xm[z])&(xDim-1)][(y+ym[z])&(yDim-1)]->move();
+            //   player[(x+xm[z])&(xDim-1)][(y+ym[z])&(yDim-1)]->plays.push_back(done[z]); // record play
+            //   N[done[z]]++;
+            //}
+            //frequencies->c+=N[C]; frequencies->d+=N[D]; frequencies->m+=N[M]; frequencies->i+=N[I];
+				//if (g::thresholdPayoff) {
+				//	if ( randDouble() < threshold(N[C]+N[M]-g::zeta, Threshold::Stepwise) ) pool = 1.0;
+				//	else pool = 0.0;
+				//} else {
+				//	pool = N[C]+N[M];
+				//}
+            //for(z=0;z<neighbors+1;z++) {
+            //   switch(done[z]){
+            //      case C: //C ooperator
+            //         player[(x+xm[z])&(xDim-1)][(y+ym[z])&(yDim-1)]->score+=( (g::rMultiplier)*((pool)/((double)neighbors+1.0))-g::cost);
+            //         break;
+            //      case D: //D efector
+            //         player[(x+xm[z])&(xDim-1)][(y+ym[z])&(yDim-1)]->score+=( (g::rMultiplier)*((pool)/((double)neighbors+1.0))-(g::beta*((double)N[M]+(double)N[I])/((double)neighbors)));
+            //         break;
+            //      case M://M oralist
+            //         player[(x+xm[z])&(xDim-1)][(y+ym[z])&(yDim-1)]->score+=( (g::rMultiplier)*((pool)/((double)neighbors+1.0))-g::cost-(g::gamma*((double)N[D]+(double)N[I])/((double)neighbors)));
+            //         break;
+            //      case I://I moralist
+            //         player[(x+xm[z])&(xDim-1)][(y+ym[z])&(yDim-1)]->score+=( (g::rMultiplier)*((pool)/((double)neighbors+1.0))-(g::beta*((double)N[M]+(double)N[I]-(double)1.0)/((double)neighbors))-(g::gamma*((double)N[D]+(double)N[I])/((double)neighbors)));
+            //         break;
+            //   }
+            //}
 			}
 		}
 		if (cursesMode && ((g::update&4095)==4095)) {
 			refresh();
+		}
+		if (g::radius == xDim) {
+			/// if radius happens to imply well-mixed
+			for(x=0;x<xDim;x++) {
+				for(y=0;y<yDim;y++) {
+					maxFit=fmax(maxFit,player[0][0]->score);
+					minFit=fmin(minFit,player[0][0]->score);
+				}
+			}
 		}
 		for(z=0;z<int(xDim*yDim*g::replacementRate);z++){
 			do{ /// pick player to die
@@ -314,35 +323,31 @@ int main (int argc, char* argv[]) {
 				y=rand()&(yDim-1);
 			} while(player[x][y]->born==g::update);
 
-			maxFit=player[0][0]->score;
-			minFit=maxFit;
-			for(x=0;x<xDim;x++) {
-				for(y=0;y<yDim;y++) {
-					maxFit=fmax(maxFit,player[0][0]->score);
-					minFit=fmin(minFit,player[0][0]->score);
+			if (g::radius < xDim) {
+				maxFit=player[0][0]->score;
+				minFit=maxFit;
+				for(tx=0;tx<g::radius;tx++) { /// determine fitness range for pool of reproduction candidates
+					for(ty=0;ty<g::radius;ty++) {
+						if(player[(x+tx)&(xDim-1)][(y+ty)&(yDim-1)]->score>maxFit) /// ++
+							maxFit=player[(x+tx)&(xDim-1)][(y+ty)&(yDim-1)]->score;
+						if(player[(x-tx)&(xDim-1)][(y-ty)&(yDim-1)]->score<minFit) /// --
+							maxFit=player[(x-tx)&(xDim-1)][(y-ty)&(yDim-1)]->score;
+						if(player[(x+tx)&(xDim-1)][(y-ty)&(yDim-1)]->score>maxFit) /// +-
+							maxFit=player[(x+tx)&(xDim-1)][(y-ty)&(yDim-1)]->score;
+						if(player[(x-tx)&(xDim-1)][(y+ty)&(yDim-1)]->score<minFit) /// -+
+							maxFit=player[(x-tx)&(xDim-1)][(y+ty)&(yDim-1)]->score;
+
+						if(player[(x+tx)&(xDim-1)][(y+ty)&(yDim-1)]->score>maxFit) /// ++
+							minFit=player[(x+tx)&(xDim-1)][(y+ty)&(yDim-1)]->score;
+						if(player[(x-tx)&(xDim-1)][(y-ty)&(yDim-1)]->score<minFit) /// --
+							minFit=player[(x-tx)&(xDim-1)][(y-ty)&(yDim-1)]->score;
+						if(player[(x+tx)&(xDim-1)][(y-ty)&(yDim-1)]->score>maxFit) /// +-
+							minFit=player[(x+tx)&(xDim-1)][(y-ty)&(yDim-1)]->score;
+						if(player[(x-tx)&(xDim-1)][(y+ty)&(yDim-1)]->score<minFit) /// -+
+							minFit=player[(x-tx)&(xDim-1)][(y+ty)&(yDim-1)]->score;
+					}
 				}
 			}
-			//for(tx=0;tx<g::radius;tx++) { /// determine fitness range for pool of reproduction candidates
-			//	for(ty=0;ty<g::radius;ty++) {
-			//		if(player[(x+tx)&(xDim-1)][(y+ty)&(yDim-1)]->score>maxFit) /// ++
-			//			maxFit=player[(x+tx)&(xDim-1)][(y+ty)&(yDim-1)]->score;
-			//		if(player[(x-tx)&(xDim-1)][(y-ty)&(yDim-1)]->score<minFit) /// --
-			//			maxFit=player[(x-tx)&(xDim-1)][(y-ty)&(yDim-1)]->score;
-			//		if(player[(x+tx)&(xDim-1)][(y-ty)&(yDim-1)]->score>maxFit) /// +-
-			//			maxFit=player[(x+tx)&(xDim-1)][(y-ty)&(yDim-1)]->score;
-			//		if(player[(x-tx)&(xDim-1)][(y+ty)&(yDim-1)]->score<minFit) /// -+
-			//			maxFit=player[(x-tx)&(xDim-1)][(y+ty)&(yDim-1)]->score;
-
-			//		if(player[(x+tx)&(xDim-1)][(y+ty)&(yDim-1)]->score>maxFit) /// ++
-			//			minFit=player[(x+tx)&(xDim-1)][(y+ty)&(yDim-1)]->score;
-			//		if(player[(x-tx)&(xDim-1)][(y-ty)&(yDim-1)]->score<minFit) /// --
-			//			minFit=player[(x-tx)&(xDim-1)][(y-ty)&(yDim-1)]->score;
-			//		if(player[(x+tx)&(xDim-1)][(y-ty)&(yDim-1)]->score>maxFit) /// +-
-			//			minFit=player[(x+tx)&(xDim-1)][(y-ty)&(yDim-1)]->score;
-			//		if(player[(x-tx)&(xDim-1)][(y+ty)&(yDim-1)]->score<minFit) /// -+
-			//			minFit=player[(x-tx)&(xDim-1)][(y+ty)&(yDim-1)]->score;
-			//	}
-			//}
 			if ((maxFit-minFit) <= 0.0) { /// Fitness-proportionally select a player to reproduce
 				do{ /// choose reproducer when no good choices
 					lxm[0] = (rand()&(g::radius-1)) * ((rand()&2)-1);
