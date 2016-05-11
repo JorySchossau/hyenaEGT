@@ -369,7 +369,7 @@ int main (int argc, char* argv[]) {
       frequencies->normalize();
       census.push_back(frequencies);
 		if (!cursesMode) {
-			if (debug && (g::update&511) == 511) {
+			if (debug && (g::update&16383) == 16383) {
 				tPlayer* ptr = player[0][0];
 				for (i=0; i<500; i++) {
 					if (ptr->ancestor == nullptr) break;
