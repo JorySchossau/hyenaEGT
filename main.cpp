@@ -68,6 +68,7 @@ namespace g {
 	double beta;
 	double gamma;
 	float rMultiplier;
+	float cost;
 	double zeta;
 	int radius=32;
 	int updates=42;
@@ -181,6 +182,7 @@ int main (int argc, char* argv[]) {
    addp(TYPE::DOUBLE, &g::beta, "0.0", false, "--beta", "Beta parameter: effect of punishment.");
    addp(TYPE::DOUBLE, &g::gamma, "0.0", false, "--gamma", "Gamma parameter: cost of punishment.");
    addp(TYPE::FLOAT, &g::rMultiplier, "5", false, "--r", "R multiplier parameter.");
+	addp(TYPE::FLOAT, &g::cost, "1", false, "--cost", "Cost of cooperation.");
    addp(TYPE::DOUBLE, &g::zeta, "0.0", false, "--zeta", "Payoff zeta for group success.");
    addp(TYPE::INT, &g::radius, "32", false, "--radius", "Length of one side of square group region, 32 is K=1024 which implies well-mixed since popoulation is 1024.");
 	addp(TYPE::STRING, &filenameLOD, "none", false, "--lod", "filename to save Line of Descent.");
@@ -242,19 +244,28 @@ int main (int argc, char* argv[]) {
             for(z=0;z<neighbors+1;z++) {
                switch(done[z]){
                   case C: //C ooperator
-                     player[(x+xm[z])&(xDim-1)][(y+ym[z])&(yDim-1)]->score+=( (g::rMultiplier)*((pool)/((double)neighbors+1.0))-1.0);
+                     player[(x+xm[z])&(xDim-1)][(y+ym[z])&(yDim-1)]->score+=( (g::rMultiplier)*((pool)/((double)neighbors+1.0))-g::cost);
                      break;
                   case D: //D efector
                      player[(x+xm[z])&(xDim-1)][(y+ym[z])&(yDim-1)]->score+=( (g::rMultiplier)*((pool)/((double)neighbors+1.0))-(g::beta*((double)N[M]+(double)N[I])/((double)neighbors)));
                      break;
                   case M://M oralist
-                     player[(x+xm[z])&(xDim-1)][(y+ym[z])&(yDim-1)]->score+=( (g::rMultiplier)*((pool)/((double)neighbors+1.0))-1.0-(g::gamma*((double)N[D]+(double)N[I])/((double)neighbors)));
+                     player[(x+xm[z])&(xDim-1)][(y+ym[z])&(yDim-1)]->score+=( (g::rMultiplier)*((pool)/((double)neighbors+1.0))-g::cost-(g::gamma*((double)N[D]+(double)N[I])/((double)neighbors)));
                      break;
                   case I://I moralist
                      player[(x+xm[z])&(xDim-1)][(y+ym[z])&(yDim-1)]->score+=( (g::rMultiplier)*((pool)/((double)neighbors+1.0))-(g::beta*((double)N[M]+(double)N[I]-(double)1.0)/((double)neighbors))-(g::gamma*((double)N[D]+(double)N[I])/((double)neighbors)));
                      break;
                }
             }
+			}
+		}
+		if (g::radius == xDim) {
+			/// if everyone has the same neighborhood for reproduction, then just calculate it once
+			for (x=0;x<xDim; x++) {
+				for (y=0; y<yDim; y++) {
+					maxFit=fmax(maxFit,player[x][y]->score);
+					minFit=fmin(minFit,player[x][y]->score);
+				}
 			}
 		}
 		for(z=0;z<int(xDim*yDim*g::replacementRate);z++){
@@ -265,25 +276,28 @@ int main (int argc, char* argv[]) {
 
 			maxFit=player[0][0]->score;
 			minFit=maxFit;
-			for(tx=0;tx<g::radius;tx++) { /// determine fitness range for pool of reproduction candidates
-				for(ty=0;ty<g::radius;ty++) {
-					if(player[(x+tx)&(xDim-1)][(y+ty)&(yDim-1)]->score>maxFit) /// ++
-						maxFit=player[(x+tx)&(xDim-1)][(y+ty)&(yDim-1)]->score;
-					if(player[(x-tx)&(xDim-1)][(y-ty)&(yDim-1)]->score<minFit) /// --
-						maxFit=player[(x-tx)&(xDim-1)][(y-ty)&(yDim-1)]->score;
-					if(player[(x+tx)&(xDim-1)][(y-ty)&(yDim-1)]->score>maxFit) /// +-
-						maxFit=player[(x+tx)&(xDim-1)][(y-ty)&(yDim-1)]->score;
-					if(player[(x-tx)&(xDim-1)][(y+ty)&(yDim-1)]->score<minFit) /// -+
-						maxFit=player[(x-tx)&(xDim-1)][(y+ty)&(yDim-1)]->score;
+			if (g::radius < xDim) {
+				/// if not everyone has the same neighborhood for reproduction
+				for(tx=0;tx<g::radius;tx++) { /// determine fitness range for pool of reproduction candidates
+					for(ty=0;ty<g::radius;ty++) {
+						if(player[(x+tx)&(xDim-1)][(y+ty)&(yDim-1)]->score>maxFit) /// ++
+							maxFit=player[(x+tx)&(xDim-1)][(y+ty)&(yDim-1)]->score;
+						if(player[(x-tx)&(xDim-1)][(y-ty)&(yDim-1)]->score<minFit) /// --
+							maxFit=player[(x-tx)&(xDim-1)][(y-ty)&(yDim-1)]->score;
+						if(player[(x+tx)&(xDim-1)][(y-ty)&(yDim-1)]->score>maxFit) /// +-
+							maxFit=player[(x+tx)&(xDim-1)][(y-ty)&(yDim-1)]->score;
+						if(player[(x-tx)&(xDim-1)][(y+ty)&(yDim-1)]->score<minFit) /// -+
+							maxFit=player[(x-tx)&(xDim-1)][(y+ty)&(yDim-1)]->score;
 
-					if(player[(x+tx)&(xDim-1)][(y+ty)&(yDim-1)]->score>maxFit) /// ++
-						minFit=player[(x+tx)&(xDim-1)][(y+ty)&(yDim-1)]->score;
-					if(player[(x-tx)&(xDim-1)][(y-ty)&(yDim-1)]->score<minFit) /// --
-						minFit=player[(x-tx)&(xDim-1)][(y-ty)&(yDim-1)]->score;
-					if(player[(x+tx)&(xDim-1)][(y-ty)&(yDim-1)]->score>maxFit) /// +-
-						minFit=player[(x+tx)&(xDim-1)][(y-ty)&(yDim-1)]->score;
-					if(player[(x-tx)&(xDim-1)][(y+ty)&(yDim-1)]->score<minFit) /// -+
-						minFit=player[(x-tx)&(xDim-1)][(y+ty)&(yDim-1)]->score;
+						if(player[(x+tx)&(xDim-1)][(y+ty)&(yDim-1)]->score>maxFit) /// ++
+							minFit=player[(x+tx)&(xDim-1)][(y+ty)&(yDim-1)]->score;
+						if(player[(x-tx)&(xDim-1)][(y-ty)&(yDim-1)]->score<minFit) /// --
+							minFit=player[(x-tx)&(xDim-1)][(y-ty)&(yDim-1)]->score;
+						if(player[(x+tx)&(xDim-1)][(y-ty)&(yDim-1)]->score>maxFit) /// +-
+							minFit=player[(x+tx)&(xDim-1)][(y-ty)&(yDim-1)]->score;
+						if(player[(x-tx)&(xDim-1)][(y+ty)&(yDim-1)]->score<minFit) /// -+
+							minFit=player[(x-tx)&(xDim-1)][(y+ty)&(yDim-1)]->score;
+					}
 				}
 			}
 			if ((maxFit-minFit) <= 0.0) { /// Fitness-proportionally select a player to reproduce
