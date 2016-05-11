@@ -1,5 +1,5 @@
 CXX=g++
-CPPFLAGS=-pthread -std=c++11
+CPPFLAGS=-pthread -std=c++11 -lcurses
 
 release: CXX += -O3
 release: public
