@@ -274,9 +274,9 @@ int main (int argc, char* argv[]) {
 				y=rand()&(yDim-1);
 			} while(player[x][y]->born==g::update);
 
-			maxFit=player[0][0]->score;
-			minFit=maxFit;
 			if (g::radius < xDim) {
+				maxFit=player[0][0]->score;
+				minFit=maxFit;
 				/// if not everyone has the same neighborhood for reproduction
 				for(tx=0;tx<g::radius;tx++) { /// determine fitness range for pool of reproduction candidates
 					for(ty=0;ty<g::radius;ty++) {
