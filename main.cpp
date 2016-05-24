@@ -249,16 +249,16 @@ int main (int argc, char* argv[]) {
             for(z=0;z<neighbors+1;z++) {
                switch(done[z]){
                   case C: //C ooperator
-                     player[(x+xm[z])&(xDim-1)][(y+ym[z])&(yDim-1)]->score+=( (g::rMultiplier)*((pool)/((double)neighbors+1.0))-g::cost);
+                     player[(x+xm[z])&(xDim-1)][(y+ym[z])&(yDim-1)]->score+=( g::rMultiplier*pool-g::cost );
                      break;
                   case D: //D efector
-                     player[(x+xm[z])&(xDim-1)][(y+ym[z])&(yDim-1)]->score+=( (g::rMultiplier)*((pool)/((double)neighbors+1.0))-(g::beta*((double)N[M]+(double)N[I])/((double)neighbors)));
+                     player[(x+xm[z])&(xDim-1)][(y+ym[z])&(yDim-1)]->score+=( g::rMultiplier*pool-g::beta );
                      break;
                   case M://M oralist
-                     player[(x+xm[z])&(xDim-1)][(y+ym[z])&(yDim-1)]->score+=( (g::rMultiplier)*((pool)/((double)neighbors+1.0))-g::cost-(g::gamma*((double)N[D]+(double)N[I])/((double)neighbors)));
+                     player[(x+xm[z])&(xDim-1)][(y+ym[z])&(yDim-1)]->score+=( g::rMultiplier*pool-g::cost-g::gamma );
                      break;
                   case I://I moralist
-                     player[(x+xm[z])&(xDim-1)][(y+ym[z])&(yDim-1)]->score+=( (g::rMultiplier)*((pool)/((double)neighbors+1.0))-(g::beta*((double)N[M]+(double)N[I]-(double)1.0)/((double)neighbors))-(g::gamma*((double)N[D]+(double)N[I])/((double)neighbors)));
+                     player[(x+xm[z])&(xDim-1)][(y+ym[z])&(yDim-1)]->score+=( g::rMultiplier*pool-g::beta-g::gamma );
                      break;
                }
             }
