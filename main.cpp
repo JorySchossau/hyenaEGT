@@ -236,8 +236,13 @@ int main (int argc, char* argv[]) {
             }
             frequencies->c+=N[C]; frequencies->d+=N[D]; frequencies->m+=N[M]; frequencies->i+=N[I];
 				if (g::thresholdPayoff) {
-					if ( randDouble() < threshold(N[C]+N[M]-g::zeta, Threshold::Stepwise) ) pool = 1.0;
-					else pool = 0.0;
+					if (g::deterministic) {
+						if ( randDouble() < threshold( N[C]+N[M]-(g::zeta-1), Threshold::Stepwise ) ) pool = 1.0;
+						else pool = 0.0;
+					} else {
+						if ( randDouble() < threshold( N[C]+N[M]-g::zeta, Threshold::Stepwise ) ) pool = 1.0;
+						else pool = 0.0;
+					}
 				} else {
 					pool = N[C]+N[M];
 				}
