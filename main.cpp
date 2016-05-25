@@ -53,8 +53,13 @@ float roundTo2(float n) { return float(ceil(n*100))/100.0; }
 #define neighbors 4
 int xm[neighbors+1]={0,1,0,-1,0};
 int ym[neighbors+1]={-1,0,1,0,0};
+//#define neighbors 16
 //int xm[neighbors+1]={0,1,0,-1, 1,1,-1,-1, 0,2,0,-2, 2,2,-2,-2, 0};
 //int ym[neighbors+1]={-1,0,1,0, 1,-1,-1,1, -2,0,2,0, 2,-2,-2,2, 0};
+//#define neighbors 48
+//int xm[neighbors+1]={-3,-3,-3,-3,-3,-3,-3, -2,-2,-2,-2,-2,-2,-2, -1,-1,-1,-1,-1,-1,-1, 0,0,0,0,0,0,
+//								1,1,1,1,1,1,1, 2,2,2,2,2,2,2, 3,3,3,3,3,3,3, 0};
+//int ym[neighbors+1]={-3,-2,-1,0,1,2,3, -3,-2,-1,0,1,2,3, -3,-2,-1,0,1,2,3, -3,-2,-1,1,2,3, -3,-2,-1,0,1,2,3, -3,-2,-1,0,1,2,3, -3,-2,-1,0,1,2,3, 0};
 vector< float > ppc; // Pc & Pd inheritances: 0.0 <= p <= 1.0 and is constant value otherwise -1 implies usual mutation
 vector< float > fcdmi; // fraction of initial C,D,M,I players
 
