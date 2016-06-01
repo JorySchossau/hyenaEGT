@@ -60,27 +60,31 @@ int ym[neighbors+1]={-1,0,1,0,0};
 //int xm[neighbors+1]={-3,-3,-3,-3,-3,-3,-3, -2,-2,-2,-2,-2,-2,-2, -1,-1,-1,-1,-1,-1,-1, 0,0,0,0,0,0,
 //								1,1,1,1,1,1,1, 2,2,2,2,2,2,2, 3,3,3,3,3,3,3, 0};
 //int ym[neighbors+1]={-3,-2,-1,0,1,2,3, -3,-2,-1,0,1,2,3, -3,-2,-1,0,1,2,3, -3,-2,-1,1,2,3, -3,-2,-1,0,1,2,3, -3,-2,-1,0,1,2,3, -3,-2,-1,0,1,2,3, 0};
-vector< float > ppc; // Pc & Pd inheritances: 0.0 <= p <= 1.0 and is constant value otherwise -1 implies usual mutation
-vector< float > fcdmi; // fraction of initial C,D,M,I players
 
 namespace g {
+	vector< float > ppc; // Pc & Pd inheritances: 0.0 <= p <= 1.0 and is constant value otherwise -1 implies usual mutation
+	vector< float > fcdmi; // fraction of initial C,D,M,I players
+	vector< float > compete; // two mixed strategies to compete, default -1
+
 	string experimentID;
 	int replicateID;
 
 	double mutationRate;
-	double replacementRate=0.02;
+	double replacementRate(0.02);
 
 	double beta;
 	double gamma;
 	float rMultiplier;
 	float cost;
 	double zeta;
-	int radius=32;
-	int updates=42;
+	int radius(32);
+	int updates(42);
 	bool savePlays;
 	bool deterministic;
 	bool thresholdPayoff;
-	int update=0;
+	int update(0);
+	float LODPAllele;
+	int PAlleleAbundance(0);
 }
 
 class tPlayer{
@@ -195,10 +199,11 @@ int main (int argc, char* argv[]) {
 	addp(TYPE::STRING, &filenamePOP, "none", false, "--pop", "filename to save population frequencies.");
    addp(TYPE::STRING, &filenameEnd, "none", false, "--end", "filename to save best genome and pop frequencies.");
 	addp(TYPE::INT, &g::updates, "100000", false, "--updates", "number of updates to simulate (not generations).");
-   addp(TYPE::FLOAT, &ppc, 2, "-1.0", false, "--ppc", "The probabilities for punishment and cooperation (0-1)");
-	addp(TYPE::FLOAT, &fcdmi, 4, "-1.0", false, "--fcdmi", "The initial population frequencies for C D M I (0-1) (forces deterministic)");
+   addp(TYPE::FLOAT, &g::ppc, 2, "-1.0", false, "--ppc", "The probabilities for punishment and cooperation (0-1)");
+	addp(TYPE::FLOAT, &g::fcdmi, 4, "-1.0", false, "--fcdmi", "The initial population frequencies for C D M I (0-1) (forces deterministic)");
    addp(TYPE::DOUBLE, &g::mutationRate, "0.02", false, "--mu", "mutation rate (per site)");
 	addp(TYPE::BOOL, &g::thresholdPayoff, "false", false, "--thresholdPayoff", "Uses the thresholding fn based on Nc to determine if the group receives any payoff.");
+	addp(TYPE::FLOAT, &g::compete, 2, "-1.0", false, "--compete", "Two mixed strategies of cooperation to compete.");
 
 	argparse(argv);
 	if (showhelp) {
@@ -227,6 +232,7 @@ int main (int argc, char* argv[]) {
       frequencies = new PopulationFrequencies;
       frequencies->c=0; frequencies->d=0; frequencies->m=0; frequencies->i=0; 
 		/// single-threaded version
+		g::PAlleleAbundance = 0;
       for(x=0;x<xDim;x++) {
          for(y=0;y<yDim;y++) {
 				for(i=0;i<neighbors;i++){ /// create a group to play games
@@ -267,6 +273,7 @@ int main (int argc, char* argv[]) {
                      break;
                }
             }
+				if (player[x][y]->probs[1] == g::LODPAllele) g::PAlleleAbundance++;
 			}
 		}
 		if (g::radius == xDim) {
@@ -336,7 +343,8 @@ int main (int argc, char* argv[]) {
 				if (ptr->ancestor == nullptr) break;
 				ptr = ptr->ancestor;
 			}
-			std::cout<<roundTo2(frequencies->c)<<" "<<roundTo2(frequencies->d)<<" "<<roundTo2(frequencies->m)<<" "<<roundTo2(frequencies->i)<<"\t"<<roundTo2(ptr->probs[0])<<"\t"<<roundTo2(ptr->probs[1])<<std::endl;
+			g::LODPAllele = ptr->probs[1];
+			std::cout<<roundTo2(frequencies->c)<<" "<<roundTo2(frequencies->d)<<" "<<roundTo2(frequencies->m)<<" "<<roundTo2(frequencies->i)<<"\t"<<roundTo2(ptr->probs[0])<<"\t"<<roundTo2(ptr->probs[1])<<" "<<roundTo2((float)g::PAlleleAbundance/(float)(xDim*yDim))<<std::endl;
 		}
       if (frequencies->c == 1.0 || frequencies->d == 1.0 || frequencies->m == 1.0 || frequencies->i == 1.0) {
          if (debug) printf( "%f %f %f %f\n",frequencies->c, frequencies->d, frequencies->m, frequencies->i );
@@ -401,7 +409,7 @@ int main (int argc, char* argv[]) {
 					(1.0-LCA->probs[0])*(1.0-LCA->probs[1]),
 					LCA->probs[0]*LCA->probs[1],
 					LCA->probs[0]*(1.0-LCA->probs[1]),
-					fcdmi[0], fcdmi[1], fcdmi[2], fcdmi[3]);
+					g::fcdmi[0], g::fcdmi[1], g::fcdmi[2], g::fcdmi[3]);
 			fclose(fileEnd);
 		}
    }
@@ -412,11 +420,11 @@ tPlayer::tPlayer() {
    int i;
 	if (g::deterministic) {
 		double a(0.25),b(0.25),c(0.25),d(0.25);
-		if (fcdmi[0] > 0.0) {
-			a = fcdmi[0];
-			b = fcdmi[1];
-			c = fcdmi[2];
-			d = fcdmi[3];
+		if (g::fcdmi[0] > 0.0) {
+			a = g::fcdmi[0];
+			b = g::fcdmi[1];
+			c = g::fcdmi[2];
+			d = g::fcdmi[3];
 		}
 		double rnd = randDouble();
 		if (rnd <= a) { probs[0]=0.0; probs[1]=1.0; }
@@ -425,10 +433,16 @@ tPlayer::tPlayer() {
 		else { probs[0]=1.0; probs[1]=0.0; }
 	} else {
 		for(i=0;i<genes;i++) {
-			if (ppc[i] < 0.0) {
+			if (g::ppc[i] < 0.0) {
 				probs[i]=0.5;
 			} else {
-				probs[i]=ppc[i];
+				probs[i]=g::ppc[i];
+			}
+		}
+		if (g::update == 0) {
+			if (g::compete[0] >= 0.0) { /// if performing a competition of two mixed strategies of different cooperating types
+				if (randDouble()<0.5) probs[1] = g::compete[0];
+				else probs[1] = g::compete[1];
 			}
 		}
 	}
@@ -482,10 +496,10 @@ void tPlayer::inherit(tPlayer *from) {
          action=from->action;
    } else { /// probabilistic
       for(int i=0;i<genes;i++){
-         if(ppc[i] < 0.0) {
+         if(g::ppc[i] < 0.0) {
             probs[i]=from->inheritGene(i);
          } else {
-            probs[i]=ppc[i];
+            probs[i]=g::ppc[i];
          }
       }
    }
