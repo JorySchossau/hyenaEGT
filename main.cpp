@@ -319,12 +319,12 @@ int main (int argc, char* argv[]) {
 					}
 				}
 			}
-			if ((maxFit-minFit) <= 0.0) { /// Fitness-proportionally select a player to reproduce
+			if ((maxFit-minFit) <= 0.0) { 
 				do{ /// choose reproducer when no good choices
 					lxm[0] = (rand()&(g::radius-1)) * ((rand()&2)-1);
 					lym[0] = (rand()&(g::radius-1)) * ((rand()&2)-1);
 				} while(((lxm[0]==0)&&(lym[0]==0)) || (player[(x+lxm[0])&(xDim-1)][(y+lym[0])&(yDim-1)]->born==g::update));
-			} else { /// maxFit > 0.0
+			} else { /// maxFit-minFit > 0.0
 				do{ /// choose reproducer when there are fitness differences
 					lxm[0] = (rand()&(g::radius-1)) * ((rand()&2)-1);
 					lym[0] = (rand()&(g::radius-1)) * ((rand()&2)-1);
@@ -356,16 +356,16 @@ int main (int argc, char* argv[]) {
    if (filenameLOD != "none") {
       fileLOD=fopen(cstr(filenameLOD),"w+t");
       if (g::savePlays)
-         fprintf( fileLOD, "%s %s %s %s %s %s %s %s %s %s %s %s %s %s\n",
+         fprintf( fileLOD, "%s %s %s %s %s %s %s %s %s %s %s %s %s %s %s\n",
                "experiment", "replicate", "born",
-               "r","zeta","beta","gamma",
+               "r","zeta","beta","gamma","cost",
                "p0","p1",
                "pc","pd","pm","pi",
                "plays" );
       else
-         fprintf( fileLOD, "%s %s %s %s %s %s %s %s %s %s %s %s %s\n",
+         fprintf( fileLOD, "%s %s %s %s %s %s %s %s %s %s %s %s %s %s\n",
                "experiment", "replicate", "born",
-               "r","zeta","beta","gamma",
+               "r","zeta","beta","gamma","cost",
                "p0","p1",
                "pc","pd","pm","pi" );
       player[0][0]->exportLOD(fileLOD);
@@ -519,9 +519,9 @@ void tPlayer::exportLOD(FILE *f) {
    if(ancestor!=NULL)
       ancestor->exportLOD(f);
    if (g::savePlays)
-      fprintf( f, "%s %d %d %f %f %f %f %f %f %f %f %f %f %s\n",
+      fprintf( f, "%s %d %d %f %f %f %f %f %f %f %f %f %f %f %s\n",
             cstr(g::experimentID), g::replicateID, born,
-            g::rMultiplier, g::zeta, g::beta, g::gamma,
+            g::rMultiplier, g::zeta, g::beta, g::gamma, g::cost,
             probs[0], probs[1],
             (1.0-probs[0])*probs[1],
             (1.0-probs[0])*(1.0-probs[1]),
@@ -530,9 +530,9 @@ void tPlayer::exportLOD(FILE *f) {
             getPlayHistoryAsString()
 				);
    else
-      fprintf( f, "%s %d %d %f %f %f %f %f %f %f %f %f %f\n",
+      fprintf( f, "%s %d %d %f %f %f %f %f %f %f %f %f %f %f\n",
             cstr(g::experimentID), g::replicateID, born,
-            g::rMultiplier, g::zeta, g::beta, g::gamma,
+            g::rMultiplier, g::zeta, g::beta, g::gamma, g::cost,
             probs[0], probs[1],
             (1.0-probs[0])*probs[1],
             (1.0-probs[0])*(1.0-probs[1]),
