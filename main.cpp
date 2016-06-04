@@ -276,6 +276,8 @@ int main (int argc, char* argv[]) {
 				if (player[x][y]->probs[1] == g::LODPAllele) g::PAlleleAbundance++;
 			}
 		}
+		maxFit = -999.0;
+		minFit = 999.0;
 		if (g::radius == xDim) {
 			/// if everyone has the same neighborhood for reproduction, then just calculate it once
 			for (x=0;x<xDim; x++) {
