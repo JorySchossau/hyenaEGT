@@ -82,9 +82,12 @@ namespace g {
 	bool savePlays;
 	bool deterministic;
 	bool thresholdPayoff;
+	double localMu(-1.0);
 	int update(0);
 	float LODPAllele;
 	int PAlleleAbundance(0);
+	vector< float > competeScores(2,0); // just a reporting structure to store the scores of the genotypes specified with --compete
+	vector< int > competeFrequencies(2,0); // ""
 }
 
 class tPlayer{
@@ -104,7 +107,7 @@ public:
    double inheritGene(int w);
    void exportLOD(FILE *f);
    char* getPlayHistoryAsString();
-   const char playToChar[4] = {'c','d','m','i'}; // lookup table for unsigned char (int) to readable char
+   const char playToChar[4] = {'d','c','i','m'}; // lookup table for unsigned char (int) to readable char
 };
 
 struct PopulationFrequencies {
@@ -203,6 +206,7 @@ int main (int argc, char* argv[]) {
 	addp(TYPE::FLOAT, &g::fcdmi, 4, "-1.0", false, "--fcdmi", "The initial population frequencies for C D M I (0-1) (forces deterministic)");
    addp(TYPE::DOUBLE, &g::mutationRate, "0.02", false, "--mu", "mutation rate (per site)");
 	addp(TYPE::BOOL, &g::thresholdPayoff, "false", false, "--thresholdPayoff", "Uses the thresholding fn based on Nc to determine if the group receives any payoff.");
+	addp(TYPE::DOUBLE, &g::localMu, "-1.0", false, "--localMu", "Enables and sets the local mutational neighborhood mode. Units are in 2x standard deviation, normal dist. 0.3338 is 2x std for norm dist 0-1.");
 	addp(TYPE::FLOAT, &g::compete, 2, "-1.0", false, "--compete", "Two mixed strategies of cooperation to compete.");
 
 	argparse(argv);
@@ -213,7 +217,7 @@ int main (int argc, char* argv[]) {
 		std::cout << "or" << std::endl;
 		std::cout << argv[0] << " --experiment deterministic --replicate 1 --lod lineOfDescent.lod --genome genome.gen" << std::endl;
 		std::cout << "or" << std::endl;
-		std::cout << argv[0] << " --experiment trial --replicate 1 --end out.end --deterministic --beta 0 --gamma 0 --fcdmi 0.25 0.25 0.25 0.25 --debug --updates 10000 --zeta 0 --r 3" << std::endl;
+		std::cout << argv[0] << " --experiment trial --replicate 1 --debug --updates 100000 --thresholdPayoff --zeta 1 --r 3 --cost 2" << std::endl;
 		std::cout << std::endl;
 		std::cout << string("There are ") + to_string(neighbors) + string(" neighbors defined in this build.") << std::endl;
 		std::cout << std::endl;
@@ -278,12 +282,27 @@ int main (int argc, char* argv[]) {
 		}
 		maxFit = -999.0;
 		minFit = 999.0;
+		if (g::compete[0] >= 0.0) {
+			g::competeScores[0] = 0.0;
+			g::competeScores[1] = 0.0;
+			g::competeFrequencies[0] = 0;
+			g::competeFrequencies[1] = 0;
+		}
 		if (g::radius == xDim) {
 			/// if everyone has the same neighborhood for reproduction, then just calculate it once
 			for (x=0;x<xDim; x++) {
 				for (y=0; y<yDim; y++) {
 					maxFit=fmax(maxFit,player[x][y]->score);
 					minFit=fmin(minFit,player[x][y]->score);
+					if (g::compete[0] >= 0.0) { /// if user is competing 2 genotypes...
+						if(player[x][y]->probs[1] == g::compete[0]) { /// check which genotype this is
+							g::competeScores[0] = fmax(player[x][y]->score,g::competeScores[0]); /// store max of genotype 1
+							++g::competeFrequencies[0];
+						} else {
+							g::competeScores[1] = fmax(player[x][y]->score,g::competeScores[1]); /// store max of genotype 2
+							++g::competeFrequencies[1];
+						}
+					}
 				}
 			}
 		}
@@ -346,7 +365,11 @@ int main (int argc, char* argv[]) {
 				ptr = ptr->ancestor;
 			}
 			g::LODPAllele = ptr->probs[1];
-			std::cout<<roundTo2(frequencies->c)<<" "<<roundTo2(frequencies->d)<<" "<<roundTo2(frequencies->m)<<" "<<roundTo2(frequencies->i)<<"\t"<<roundTo2(ptr->probs[0])<<"\t"<<roundTo2(ptr->probs[1])<<" "<<roundTo2((float)g::PAlleleAbundance/(float)(xDim*yDim))<<std::endl;
+			std::cout<<roundTo2(frequencies->c)<<" "<<roundTo2(frequencies->d)<<" "<<roundTo2(frequencies->m)<<" "<<roundTo2(frequencies->i)<<" "<<roundTo2(ptr->probs[0])<<" "<<roundTo2(ptr->probs[1])<<" "<<roundTo2(minFit)<<" "<<roundTo2(maxFit);
+			if (g::compete[0] >= 0.0) {
+				std::cout<<" "<<g::competeFrequencies[0]<<" "<<g::competeFrequencies[1]<<" "<<g::competeScores[0]<<" "<<g::competeScores[1];
+			}
+			std::cout << std::endl;
 		}
       if (frequencies->c == 1.0 || frequencies->d == 1.0 || frequencies->m == 1.0 || frequencies->i == 1.0) {
          if (debug) printf( "%f %f %f %f\n",frequencies->c, frequencies->d, frequencies->m, frequencies->i );
@@ -491,7 +514,7 @@ unsigned char tPlayer::move(void) {
 void tPlayer::inherit(tPlayer *from) {
    ancestor=from;
    ancestor->nrPointingAtMe++;
-   if (g::deterministic) {
+   if (g::deterministic) { /// deterministic
       if (randDouble()<g::mutationRate)
          action=((rand()&1)<<1) + (rand()&1);
       else
@@ -509,7 +532,13 @@ void tPlayer::inherit(tPlayer *from) {
 
 double tPlayer::inheritGene(int w) {
    if(randDouble()<g::mutationRate) {
-      return randDouble();
+		if (g::localMu >= 0.0) { /// local mutational neighborhood
+			double newvalue(probs[w]); // start with what is being inherited
+			newvalue += (randDouble()+randDouble()+randDouble())/3.0*(g::localMu/0.3338) - (g::localMu/0.3338)/2; /// 0.3338 is 2x std dev for norm dist 0-1
+			return std::max(0.0, std::min(1.0, newvalue)); /// clamp number to 0-1
+		} else { /// uniform mutational neighborhood
+			return randDouble();
+		}
 	}
    else
       return probs[w];
